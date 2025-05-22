@@ -1,0 +1,57 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.0.31903.59
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "src", "src", "{55BFAB48-0E3D-4575-BE77-8D7ABE5CBD7B}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "LinkForge.API", "src\api\LinkForge.API.csproj", "{C90338E6-603D-4BA6-AEA4-EABB085AB06E}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "LinkForge.Application", "src\application\LinkForge.Application.csproj", "{25D763F0-D358-4281-B369-F6158491A965}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "LinkForge.Domain", "src\domain\LinkForge.Domain.csproj", "{55323B8D-7C0E-4412-8F4E-663402943785}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "LinkForge.Infrastructure", "src\infrastructure\LinkForge.Infrastructure.csproj", "{23DFA87A-ADBC-4AD2-904D-CBB7989FD205}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "tests", "tests", "{AA0C5329-F0CD-47DF-88BF-1B1463A5FA59}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "LinkForge.UnitTests", "tests\unit-tests\LinkForge.UnitTests.csproj", "{D3846F3E-1B83-4828-8715-3D6212303B57}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{C90338E6-603D-4BA6-AEA4-EABB085AB06E}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{C90338E6-603D-4BA6-AEA4-EABB085AB06E}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{C90338E6-603D-4BA6-AEA4-EABB085AB06E}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{C90338E6-603D-4BA6-AEA4-EABB085AB06E}.Release|Any CPU.Build.0 = Release|Any CPU
+		{25D763F0-D358-4281-B369-F6158491A965}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{25D763F0-D358-4281-B369-F6158491A965}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{25D763F0-D358-4281-B369-F6158491A965}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{25D763F0-D358-4281-B369-F6158491A965}.Release|Any CPU.Build.0 = Release|Any CPU
+		{55323B8D-7C0E-4412-8F4E-663402943785}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{55323B8D-7C0E-4412-8F4E-663402943785}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{55323B8D-7C0E-4412-8F4E-663402943785}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{55323B8D-7C0E-4412-8F4E-663402943785}.Release|Any CPU.Build.0 = Release|Any CPU
+		{23DFA87A-ADBC-4AD2-904D-CBB7989FD205}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{23DFA87A-ADBC-4AD2-904D-CBB7989FD205}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{23DFA87A-ADBC-4AD2-904D-CBB7989FD205}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{23DFA87A-ADBC-4AD2-904D-CBB7989FD205}.Release|Any CPU.Build.0 = Release|Any CPU
+		{D3846F3E-1B83-4828-8715-3D6212303B57}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{D3846F3E-1B83-4828-8715-3D6212303B57}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{D3846F3E-1B83-4828-8715-3D6212303B57}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{D3846F3E-1B83-4828-8715-3D6212303B57}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(NestedProjects) = preSolution
+		{C90338E6-603D-4BA6-AEA4-EABB085AB06E} = {55BFAB48-0E3D-4575-BE77-8D7ABE5CBD7B}
+		{25D763F0-D358-4281-B369-F6158491A965} = {55BFAB48-0E3D-4575-BE77-8D7ABE5CBD7B}
+		{55323B8D-7C0E-4412-8F4E-663402943785} = {55BFAB48-0E3D-4575-BE77-8D7ABE5CBD7B}
+		{23DFA87A-ADBC-4AD2-904D-CBB7989FD205} = {55BFAB48-0E3D-4575-BE77-8D7ABE5CBD7B}
+		{D3846F3E-1B83-4828-8715-3D6212303B57} = {AA0C5329-F0CD-47DF-88BF-1B1463A5FA59}
+	EndGlobalSection
+EndGlobal
