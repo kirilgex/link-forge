@@ -1,5 +1,6 @@
 using LinkForge.Application.Repositories;
 using LinkForge.Domain.Users;
+using LinkForge.Domain.Users.ValueTypes;
 using LinkForge.Infrastructure.PersistentStorage.Dto;
 
 using Microsoft.Extensions.Options;
@@ -13,11 +14,20 @@ internal sealed class UsersRepository(IOptions<DatabaseSettings> settings)
 {
     public const string CollectionName = "users";
 
-    public async Task<User?> FindAsync(
-        string email,
+    public async Task<bool> ExistsAsync(
+        UserEmail email,
         CancellationToken ct = default)
     {
-        return (User?) await Collection
+        return await Collection
+            .Find(x => x.Email == email)
+            .AnyAsync(ct);
+    }
+
+    public async Task<User?> FindAsync(
+        UserEmail email,
+        CancellationToken ct = default)
+    {
+        return (User?)await Collection
             .Find(x => x.Email == email)
             .FirstOrDefaultAsync(ct);
     }

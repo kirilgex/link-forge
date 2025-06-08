@@ -1,3 +1,5 @@
+using System.Text.Json.Serialization;
+
 using Asp.Versioning;
 
 using LinkForge.Application.Services.Interfaces;
@@ -33,12 +35,18 @@ public static class GetLinkEndpoint
                 title: "Invalid Request",
                 detail: "The 'code' parameter is required and cannot be empty.",
                 statusCode: StatusCodes.Status400BadRequest);
- 
+
         var result = await linksLookupService.FindLinkAsync(
             LinkCode.FromUserInput(code), ct);
 
         if (result is null) return Results.NotFound();
-            
-        return Results.Redirect(result.OriginalUrl);
+
+        return Results.Ok(new Response(result.OriginalUrl));
     }
+
+    private record Response(string Link)
+    {
+        [JsonPropertyName("link")]
+        public string Link { get; init; } = Link;
+    };
 }

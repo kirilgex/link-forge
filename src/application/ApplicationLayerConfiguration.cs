@@ -9,9 +9,9 @@ public static class ApplicationLayerConfiguration
 {
     public static IServiceCollection AddApplicationLayerServices(this IServiceCollection services)
     {
-        services.AddSingleton<IJwtTokenService, JwtTokenService>();
         services.AddSingleton<IHashingService, MurmurHashingService>();
 
+        services.AddScoped<IAuthService, AuthService>();
         services.AddScoped<ILinksProcessService, LinksProcessService>();
         services.AddScoped<ILinksLookupService, LinksLookupService>();
 

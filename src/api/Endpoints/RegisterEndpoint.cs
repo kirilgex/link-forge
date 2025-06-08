@@ -1,7 +1,6 @@
 using Asp.Versioning;
 
-using LinkForge.Application.Repositories;
-using LinkForge.Domain.Users;
+using LinkForge.Application.Services.Interfaces;
 using LinkForge.Domain.Users.ValueTypes;
 
 namespace LinkForge.API.Endpoints;
@@ -23,8 +22,9 @@ public static class RegisterEndpoint
 
     private static async Task<IResult> HandleAsync(
         RegisterRequest request,
-        IUsersRepository usersRepository, // TODO: to separate service
         HttpContext context,
+        IAuthService authService,
+        LinkGenerator linkGenerator,
         CancellationToken ct = default)
     {
         if (!UserEmail.TryParseFromUserInput(request.Email, out var email))
@@ -33,27 +33,25 @@ public static class RegisterEndpoint
                 detail: "Valid email is required.",
                 statusCode: StatusCodes.Status400BadRequest);
 
-        if (!Password.TryParseFromUserInput(request.Password, out var password))
+        if (!UserPassword.TryParseFromUserInput(request.Password, out var password))
             return Results.Problem(
                 title: "Invalid Request",
-                detail: Password.GetPasswordRestrictions(),
+                detail: UserPassword.GetPasswordRestrictions(),
                 statusCode: StatusCodes.Status400BadRequest);
 
-        if (await usersRepository.FindAsync(request.Email, ct) is not null)
+        if (await authService.UserExistsAsync(email, ct))
             return Results.Problem(
                 title: "Invalid Request",
                 detail: "User already exists.",
                 statusCode: StatusCodes.Status400BadRequest);
 
-        var user = new User()
-        {
-            Email = email,
-            PasswordHash = BCrypt.Net.BCrypt.HashPassword(password),
-        };
+        await authService.CreateUserAsync(email, password);
 
-        await usersRepository.InsertAsync(user);
+        var version = context.GetRequestedApiVersion() ?? new ApiVersion(majorVersion: 0);
+        var endpointName = LoginEndpoint.GetNameWithVersion(version);
+        context.Response.Headers.Location = linkGenerator.GetUriByName(context, endpointName);
 
-        return Results.Ok();
+        return Results.Created();
     }
 
     private record RegisterRequest(string Email, string Password);

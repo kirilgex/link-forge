@@ -1,7 +1,7 @@
 using Asp.Versioning;
 
-using LinkForge.Application.Repositories;
 using LinkForge.Application.Services.Interfaces;
+using LinkForge.Domain.Users.ValueTypes;
 
 namespace LinkForge.API.Endpoints;
 
@@ -22,17 +22,25 @@ public static class LoginEndpoint
 
     private static async Task<IResult> HandleAsync(
         LoginRequest request,
-        IUsersRepository usersRepository, // TODO: to separate service
-        IJwtTokenService jwtTokenService,
         HttpContext context,
+        IAuthService authService,
         CancellationToken ct = default)
     {
-        var user = await usersRepository.FindAsync(request.Email, ct);
+        if (string.IsNullOrWhiteSpace(request.Email) || string.IsNullOrWhiteSpace(request.Password))
+            return Results.Problem(
+                title: "Invalid Request",
+                detail: "Email and password required.",
+                statusCode: StatusCodes.Status400BadRequest);
 
-        if (user is null || !BCrypt.Net.BCrypt.Verify(request.Password, user.PasswordHash))
+        var user = await authService.AuthenticateUserAsync(
+            UserEmail.ParseFromUserInput(request.Email),
+            UserPassword.ParseFromUserInput(request.Password),
+            ct);
+
+        if (user is null)
             return Results.Unauthorized();
 
-        var token = jwtTokenService.GenerateToken(user);
+        var token = authService.CreateAuthToken(user);
 
         return Results.Ok(new { token });
     }

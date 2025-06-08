@@ -4,6 +4,9 @@ namespace LinkForge.Domain.Users.ValueTypes;
 
 public record struct UserEmail(string Value)
 {
+    public static UserEmail ParseFromUserInput(string input)
+        => new(input.ToLowerInvariant().Trim());
+
     public static bool TryParseFromUserInput(string input, out UserEmail result)
     {
         result = default;

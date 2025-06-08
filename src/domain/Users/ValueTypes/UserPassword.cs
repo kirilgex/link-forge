@@ -2,7 +2,7 @@ using System.Text;
 
 namespace LinkForge.Domain.Users.ValueTypes;
 
-public record struct Password(string Value)
+public record struct UserPassword(string Value)
 {
     private const int MinimalLength = 8;
     private const bool UppercaseLetters = true;
@@ -30,7 +30,10 @@ public record struct Password(string Value)
         return sb.ToString().Trim();
     }
 
-    public static bool TryParseFromUserInput(string input, out Password result)
+    public static UserPassword ParseFromUserInput(string input)
+        => new(input.Trim());
+
+    public static bool TryParseFromUserInput(string input, out UserPassword result)
     {
         result = default;
 
@@ -51,8 +54,10 @@ public record struct Password(string Value)
         if (Digits && !input.Any(char.IsDigit))
             return false;
 
+        result = new(input);
+
         return true;
     }
 
-    public static implicit operator string(Password source) => source.Value;
+    public static implicit operator string(UserPassword source) => source.Value;
 }

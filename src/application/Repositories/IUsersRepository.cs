@@ -1,11 +1,16 @@
 using LinkForge.Domain.Users;
+using LinkForge.Domain.Users.ValueTypes;
 
 namespace LinkForge.Application.Repositories;
 
 public interface IUsersRepository
 {
+    Task<bool> ExistsAsync(
+        UserEmail email,
+        CancellationToken ct = default);
+
     Task<User?> FindAsync(
-        string email,
+        UserEmail email,
         CancellationToken ct = default);
 
     Task InsertAsync(

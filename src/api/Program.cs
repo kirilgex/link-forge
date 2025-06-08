@@ -25,10 +25,10 @@ builder.Services
             ValidateAudience = true,
             ValidateLifetime = true,
             ValidateIssuerSigningKey = true,
-            ValidIssuer = builder.Configuration["JWT:Issuer"],
-            ValidAudience = builder.Configuration["JWT:Audience"],
+            ValidIssuer = builder.Configuration["Auth:Issuer"],
+            ValidAudience = builder.Configuration["Auth:Audience"],
             IssuerSigningKey = new SymmetricSecurityKey(
-                Encoding.UTF8.GetBytes(builder.Configuration["JWT:Key"]!)),
+                Encoding.UTF8.GetBytes(builder.Configuration["Auth:SecretKey"]!)),
         };
     });
 

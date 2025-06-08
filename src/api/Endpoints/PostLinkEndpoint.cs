@@ -23,8 +23,8 @@ public static class PostLinkEndpoint
 
     private static async Task<IResult> HandleAsync(
         PostLinkRequest request,
-        ILinksProcessService linksProcessService,
         HttpContext context,
+        ILinksProcessService linksProcessService,
         LinkGenerator linkGenerator,
         CancellationToken ct = default)
     {
