@@ -1,7 +1,7 @@
 using Asp.Versioning;
 
 using LinkForge.Application.Services.Interfaces;
-using LinkForge.Domain.ValueTypes;
+using LinkForge.Domain.Links.ValueTypes;
 
 namespace LinkForge.API.Endpoints;
 
@@ -16,14 +16,15 @@ public static class PostLinkEndpoint
     {
         group
             .MapPost("links", HandleAsync)
-            .WithName(GetNameWithVersion(apiVersion));
+            .WithName(GetNameWithVersion(apiVersion))
+            .RequireAuthorization();
         return group;
     }
 
     private static async Task<IResult> HandleAsync(
         PostLinkRequest request,
-        ILinksProcessService linksProcessService,
         HttpContext context,
+        ILinksProcessService linksProcessService,
         LinkGenerator linkGenerator,
         CancellationToken ct = default)
     {

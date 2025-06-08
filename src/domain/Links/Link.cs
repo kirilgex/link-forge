@@ -1,10 +1,11 @@
+using LinkForge.Domain.Links.ValueTypes;
 using LinkForge.Domain.ValueTypes;
 
-namespace LinkForge.Domain;
+namespace LinkForge.Domain.Links;
 
 public record Link
 {
-    public LinkId Id { get; set; }
+    public EntityId Id { get; set; }
 
     public LinkCode Code { get; set; }
 

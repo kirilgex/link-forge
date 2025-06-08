@@ -4,7 +4,7 @@ using MongoDB.Driver;
 
 namespace LinkForge.Infrastructure.PersistentStorage.Repositories;
 
-public abstract class BaseRepository<T>
+internal abstract class BaseRepository<T>
 {
     protected IMongoCollection<T> Collection { get; }
 

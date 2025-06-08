@@ -1,7 +1,7 @@
 using LinkForge.Application.Repositories;
 using LinkForge.Application.Services.Interfaces;
-using LinkForge.Domain;
-using LinkForge.Domain.ValueTypes;
+using LinkForge.Domain.Links;
+using LinkForge.Domain.Links.ValueTypes;
 
 namespace LinkForge.Application.Services.Implementations;
 

@@ -1,4 +1,4 @@
-using LinkForge.Domain;
+using LinkForge.Domain.Links;
 
 namespace LinkForge.Application.Services.Interfaces;
 
