@@ -1,14 +1,14 @@
-using LinkForge.Domain.Links;
+using LinkForge.Domain.Users;
 
 namespace LinkForge.Application.Repositories;
 
-public interface ILinksRepository
+public interface IUsersRepository
 {
-    Task<Link?> FindAsync(
-        string code,
+    Task<User?> FindAsync(
+        string email,
         CancellationToken ct = default);
 
     Task InsertAsync(
-        Link link,
+        User user,
         CancellationToken ct = default);
 }

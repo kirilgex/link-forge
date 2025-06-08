@@ -1,10 +1,38 @@
+using System.Text;
+
 using LinkForge.API;
 using LinkForge.API.Endpoints;
 using LinkForge.Application;
 using LinkForge.Application.Settings;
 using LinkForge.Infrastructure.PersistentStorage;
 
+using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.IdentityModel.Tokens;
+
 var builder = WebApplication.CreateBuilder(args);
+
+builder.Services
+    .AddAuthentication(options =>
+    {
+        options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
+        options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
+    })
+    .AddJwtBearer(options =>
+    {
+        options.TokenValidationParameters = new TokenValidationParameters
+        {
+            ValidateIssuer = true,
+            ValidateAudience = true,
+            ValidateLifetime = true,
+            ValidateIssuerSigningKey = true,
+            ValidIssuer = builder.Configuration["JWT:Issuer"],
+            ValidAudience = builder.Configuration["JWT:Audience"],
+            IssuerSigningKey = new SymmetricSecurityKey(
+                Encoding.UTF8.GetBytes(builder.Configuration["JWT:Key"]!)),
+        };
+    });
+
+builder.Services.AddAuthorization();
 
 builder.Services.AddApiVersioning(options =>
 {
@@ -25,6 +53,9 @@ var app = builder.Build();
 
 app.UseHttpsRedirection();
 
+app.UseAuthentication();
+app.UseAuthorization();
+
 var apiSet_v0 = app
     .NewApiVersionSet()
     .HasApiVersion(ApiVersions.V0)
@@ -36,6 +67,8 @@ var group_v0 = app
     .WithApiVersionSet(apiSet_v0);
 
 group_v0
+    .MapRegisterEndpoint(ApiVersions.V0)
+    .MapLoginEndpoint(ApiVersions.V0)
     .MapPostLinkEndpoint(ApiVersions.V0)
     .MapGetLinkEndpoint(ApiVersions.V0);
 

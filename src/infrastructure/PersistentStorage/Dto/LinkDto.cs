@@ -1,11 +1,12 @@
-using LinkForge.Domain;
+using LinkForge.Domain.Links;
+using LinkForge.Domain.Links.ValueTypes;
 using LinkForge.Domain.ValueTypes;
 
 using MongoDB.Bson;
 
 namespace LinkForge.Infrastructure.PersistentStorage.Dto;
 
-public record class LinkDto
+public record LinkDto
 {
     public ObjectId Id { get; init; }
     public required string Code { get; init; }
@@ -23,7 +24,7 @@ public record class LinkDto
             ? null
             : new Link
             {
-                Id = (LinkId)source.Id.ToString(),
+                Id = (EntityId)source.Id.ToString(),
                 Code = (LinkCode)source.Code,
                 OriginalUrl = (LinkOriginalUrl)source.OriginalUrl,
             };

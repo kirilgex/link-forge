@@ -1,4 +1,4 @@
-namespace LinkForge.Domain.ValueTypes;
+namespace LinkForge.Domain.Links.ValueTypes;
 
 public record struct LinkOriginalUrl(string Value)
 {

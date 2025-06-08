@@ -1,7 +1,7 @@
 using Asp.Versioning;
 
 using LinkForge.Application.Services.Interfaces;
-using LinkForge.Domain.ValueTypes;
+using LinkForge.Domain.Links.ValueTypes;
 
 using Microsoft.AspNetCore.Mvc;
 
@@ -18,7 +18,8 @@ public static class GetLinkEndpoint
     {
         group
             .MapGet("links/{code?}", HandleAsync)
-            .WithName(GetNameWithVersion(apiVersion));
+            .WithName(GetNameWithVersion(apiVersion))
+            .RequireAuthorization();
         return group;
     }
 
