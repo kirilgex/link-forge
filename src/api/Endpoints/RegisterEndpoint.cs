@@ -2,6 +2,7 @@ using Asp.Versioning;
 
 using LinkForge.Application.Repositories;
 using LinkForge.Domain.Users;
+using LinkForge.Domain.Users.ValueTypes;
 
 namespace LinkForge.API.Endpoints;
 
@@ -26,7 +27,17 @@ public static class RegisterEndpoint
         HttpContext context,
         CancellationToken ct = default)
     {
-        // TODO: validate email, password
+        if (!UserEmail.TryParseFromUserInput(request.Email, out var email))
+            return Results.Problem(
+                title: "Invalid Request",
+                detail: "Valid email is required.",
+                statusCode: StatusCodes.Status400BadRequest);
+
+        if (!Password.TryParseFromUserInput(request.Password, out var password))
+            return Results.Problem(
+                title: "Invalid Request",
+                detail: Password.GetPasswordRestrictions(),
+                statusCode: StatusCodes.Status400BadRequest);
 
         if (await usersRepository.FindAsync(request.Email, ct) is not null)
             return Results.Problem(
@@ -36,8 +47,8 @@ public static class RegisterEndpoint
 
         var user = new User()
         {
-            Email = request.Email,
-            PasswordHash = BCrypt.Net.BCrypt.HashPassword(request.Password),
+            Email = email,
+            PasswordHash = BCrypt.Net.BCrypt.HashPassword(password),
         };
 
         await usersRepository.InsertAsync(user);

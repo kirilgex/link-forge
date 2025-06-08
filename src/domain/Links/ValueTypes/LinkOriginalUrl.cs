@@ -6,7 +6,7 @@ public record struct LinkOriginalUrl(string Value)
     {
         result = default;
 
-        input = input.Trim();
+        input = input.ToLowerInvariant().Trim();
 
         if (!input.StartsWith("http://", StringComparison.InvariantCultureIgnoreCase)
             && !input.StartsWith("https://", StringComparison.InvariantCultureIgnoreCase))
@@ -18,8 +18,8 @@ public record struct LinkOriginalUrl(string Value)
 
         var builder = new UriBuilder(uri)
         {
-            Scheme = uri.Scheme.ToLowerInvariant(),
-            Host = uri.Host.ToLowerInvariant(),
+            Scheme = uri.Scheme,
+            Host = uri.Host,
             Port = uri is { Scheme: "http", Port: 80 } or { Scheme: "https", Port: 443 }
                 ? -1
                 : uri.Port,

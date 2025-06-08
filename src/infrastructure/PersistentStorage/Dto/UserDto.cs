@@ -1,4 +1,5 @@
 using LinkForge.Domain.Users;
+using LinkForge.Domain.Users.ValueTypes;
 using LinkForge.Domain.ValueTypes;
 
 using MongoDB.Bson;
@@ -24,7 +25,7 @@ public record UserDto
             : new User
             {
                 Id = (EntityId)source.Id.ToString(),
-                Email = source.Email,
+                Email = (UserEmail)source.Email,
                 PasswordHash = source.PasswordHash,
             };
 }
