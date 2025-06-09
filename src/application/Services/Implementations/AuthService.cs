@@ -7,7 +7,9 @@ using LinkForge.Application.Services.Interfaces;
 using LinkForge.Domain.Users;
 using LinkForge.Domain.Users.ValueTypes;
 
+using Microsoft.AspNetCore.Identity;
 using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
 
 namespace LinkForge.Application.Services.Implementations;
@@ -17,6 +19,14 @@ public class AuthService(
     IUsersRepository usersRepository)
     : IAuthService
 {
+    private static readonly IPasswordHasher<User> PasswordHasher =
+        new PasswordHasher<User>(
+            new OptionsWrapper<PasswordHasherOptions>(
+                new PasswordHasherOptions
+                {
+                    CompatibilityMode = PasswordHasherCompatibilityMode.IdentityV3,
+                }));
+
     public async Task<bool> UserExistsAsync(
         UserEmail email,
         CancellationToken ct = default)
@@ -30,8 +40,9 @@ public class AuthService(
         var user = new User
         {
             Email = email,
-            PasswordHash = BCrypt.Net.BCrypt.HashPassword(password),
         };
+
+        user.PasswordHash = PasswordHasher.HashPassword(user, password);
 
         await usersRepository.InsertAsync(user, ct);
     }
@@ -43,10 +54,12 @@ public class AuthService(
     {
         var user = await usersRepository.FindAsync(email, ct);
 
-        if (user is null)
+        if (user is null || user.PasswordHash is null)
             return null;
 
-        if (!BCrypt.Net.BCrypt.Verify(password, user.PasswordHash))
+        var verificationResult = PasswordHasher.VerifyHashedPassword(user, user.PasswordHash, password);
+
+        if (verificationResult is PasswordVerificationResult.Failed)
             return null;
 
         return user;

@@ -9,5 +9,5 @@ public record User
 
     public required UserEmail Email { get; set; }
 
-    public required string PasswordHash { get; set; }
+    public string? PasswordHash { get; set; }
 }
