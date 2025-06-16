@@ -12,19 +12,14 @@ public class LinksProcessService(
     : ILinksProcessService
 {
     public async Task<string> ProcessLinkAsync(
-        LinkOriginalUrl url,
+        LinkUrl url,
         EntityId ownerId,
         CancellationToken ct = default)
     {
         var guid = Guid.CreateVersion7().ToString();
         var code = hashingService.ComputeHashAsHexString(guid);
 
-        var link = new Link
-        {
-            OwnerId = ownerId,
-            Code = (LinkCode)code,
-            OriginalUrl = url,
-        };
+        var link = new Link(ownerId, (LinkCode)code, url);
     
         await linksRepository.InsertAsync(link, ct);
 

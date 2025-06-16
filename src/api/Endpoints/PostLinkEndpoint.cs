@@ -37,7 +37,7 @@ public static class PostLinkEndpoint
                 detail: "The 'url' field is required and cannot be empty.",
                 statusCode: StatusCodes.Status400BadRequest);
 
-        if (!LinkOriginalUrl.TryParseFromUserInput(request.Url, out var url))
+        if (!LinkUrl.TryParseFromUserInput(request.Url, out var url))
             return Results.Problem(
                 title: "Invalid Request",
                 detail: "The 'url' field must be a valid url.",

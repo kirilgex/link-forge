@@ -46,7 +46,7 @@ public static class PersistentStorageConfiguration
                 cm.AutoMap();
                 cm.MapIdMember(x => x.Id);
                 cm.MapMember(x => x.Email).SetElementName("email");
-                cm.MapMember(x => x.PasswordHash).SetElementName("passwordHash");
+                cm.MapMember(x => x.PasswordHash).SetElementName("pass");
             });
         }
     }
@@ -61,7 +61,7 @@ public static class PersistentStorageConfiguration
                 cm.MapIdMember(x => x.Id);
                 cm.MapMember(x => x.OwnerId).SetElementName("ownerId");
                 cm.MapMember(x => x.Code).SetElementName("code");
-                cm.MapMember(x => x.OriginalUrl).SetElementName("originalUrl");
+                cm.MapMember(x => x.Url).SetElementName("url");
             });
         }
     }

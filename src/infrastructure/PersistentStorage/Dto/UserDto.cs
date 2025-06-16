@@ -16,16 +16,14 @@ public record UserDto
         => new()
         {
             Email = source.Email,
-            PasswordHash  = source.PasswordHash,
+            PasswordHash  = source.PasswordHash!,
         };
 
     public static explicit operator User?(UserDto? source)
         => source is null
             ? null
-            : new User
-            {
-                Id = (EntityId)source.Id.ToString(),
-                Email = (UserEmail)source.Email,
-                PasswordHash = source.PasswordHash,
-            };
+            : new User(
+                (EntityId)source.Id.ToString(),
+                (UserEmail)source.Email,
+                source.PasswordHash);
 }

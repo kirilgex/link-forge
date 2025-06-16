@@ -37,10 +37,7 @@ public class AuthService(
         UserPassword password,
         CancellationToken ct = default)
     {
-        var user = new User
-        {
-            Email = email,
-        };
+        var user = new User(email);
 
         user.PasswordHash = PasswordHasher.HashPassword(user, password);
 

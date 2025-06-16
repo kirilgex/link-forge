@@ -6,7 +6,7 @@ namespace LinkForge.Application.Services.Interfaces;
 public interface ILinksProcessService
 {
     Task<string> ProcessLinkAsync(
-        LinkOriginalUrl url,
+        LinkUrl url,
         EntityId ownerId,
         CancellationToken ct = default);
 }

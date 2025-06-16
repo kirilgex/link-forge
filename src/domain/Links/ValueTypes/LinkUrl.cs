@@ -1,8 +1,8 @@
 namespace LinkForge.Domain.Links.ValueTypes;
 
-public record struct LinkOriginalUrl(string Value)
+public record struct LinkUrl(string Value)
 {
-    public static bool TryParseFromUserInput(string input, out LinkOriginalUrl result)
+    public static bool TryParseFromUserInput(string input, out LinkUrl result)
     {
         result = default;
 
@@ -25,12 +25,12 @@ public record struct LinkOriginalUrl(string Value)
                 : uri.Port,
         };
 
-        result = new LinkOriginalUrl(builder.ToString().TrimEnd('/'));
+        result = new LinkUrl(builder.ToString().TrimEnd('/'));
 
         return true;
     }
 
-    public static explicit operator LinkOriginalUrl(string source) => new(source);
+    public static explicit operator LinkUrl(string source) => new(source);
 
-    public static implicit operator string(LinkOriginalUrl source) => source.Value;
+    public static implicit operator string(LinkUrl source) => source.Value;
 }

@@ -41,7 +41,7 @@ public static class GetLinkEndpoint
 
         if (result is null) return Results.NotFound();
 
-        return Results.Ok(new Response(result.OriginalUrl));
+        return Results.Ok(new Response(result.Url));
     }
 
     private record Response(string Link)

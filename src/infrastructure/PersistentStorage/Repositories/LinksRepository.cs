@@ -42,7 +42,7 @@ internal sealed class LinksRepository(IOptions<DatabaseSettings> settings)
         CancellationToken ct = default)
     {
         await Collection.InsertOneAsync(
-            (LinkDto) link,
+            (LinkDto)link,
             options: null,
             ct);
     }
