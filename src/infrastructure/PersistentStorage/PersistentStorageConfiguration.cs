@@ -59,6 +59,7 @@ public static class PersistentStorageConfiguration
             {
                 cm.AutoMap();
                 cm.MapIdMember(x => x.Id);
+                cm.MapMember(x => x.OwnerId).SetElementName("ownerId");
                 cm.MapMember(x => x.Code).SetElementName("code");
                 cm.MapMember(x => x.OriginalUrl).SetElementName("originalUrl");
             });

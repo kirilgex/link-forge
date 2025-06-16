@@ -1,7 +1,10 @@
+using System.Security.Claims;
+
 using Asp.Versioning;
 
 using LinkForge.Application.Services.Interfaces;
 using LinkForge.Domain.Links.ValueTypes;
+using LinkForge.Domain.ValueTypes;
 
 namespace LinkForge.API.Endpoints;
 
@@ -40,7 +43,14 @@ public static class PostLinkEndpoint
                 detail: "The 'url' field must be a valid url.",
                 statusCode: StatusCodes.Status400BadRequest);
 
-        var code = await linksProcessService.ProcessLinkAsync(url, ct);
+        var userId = context.User.FindFirst(ClaimTypes.NameIdentifier);
+        if (string.IsNullOrWhiteSpace(userId?.Value))
+            return Results.Problem(
+                title: "Invalid Request",
+                detail: "Invalid auth token.",
+                statusCode: StatusCodes.Status400BadRequest);
+
+        var code = await linksProcessService.ProcessLinkAsync(url, (EntityId)userId.Value, ct);
 
         var version = context.GetRequestedApiVersion() ?? new ApiVersion(majorVersion: 0);
         var endpointName = GetLinkEndpoint.GetNameWithVersion(version);

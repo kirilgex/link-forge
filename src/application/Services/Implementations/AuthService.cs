@@ -69,7 +69,7 @@ public class AuthService(
     {
         var claims = new Claim[]
         {
-            new(ClaimTypes.Email, user.Email),
+            new(ClaimTypes.NameIdentifier, user.Id.ToString()),
         };
 
         var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(configuration["Auth:SecretKey"]!));

@@ -4,6 +4,7 @@ using LinkForge.Infrastructure.PersistentStorage.Dto;
 
 using Microsoft.Extensions.Options;
 
+using MongoDB.Bson;
 using MongoDB.Driver;
 
 namespace LinkForge.Infrastructure.PersistentStorage.Repositories;
@@ -17,8 +18,22 @@ internal sealed class LinksRepository(IOptions<DatabaseSettings> settings)
         string code,
         CancellationToken ct = default)
     {
-        return (Link?) await Collection
-            .Find(x => x.Code == code)
+        BsonDocument[] pipeline =
+        [
+            new("$match", new BsonDocument("code", code)),
+            new("$lookup", new BsonDocument
+            {
+                { "from", "users" },
+                { "localField", "ownerId" },
+                { "foreignField", "_id" },
+                { "as", "Owner" },
+            }),
+            new("$unwind", "$Owner"),
+            new("$limit", 1)
+        ];
+
+        return (Link?)await Collection
+            .Aggregate<LinkDto>(pipeline)
             .FirstOrDefaultAsync(ct);
     }
     

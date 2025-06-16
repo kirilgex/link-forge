@@ -2,6 +2,7 @@ using LinkForge.Application.Repositories;
 using LinkForge.Application.Services.Interfaces;
 using LinkForge.Domain.Links;
 using LinkForge.Domain.Links.ValueTypes;
+using LinkForge.Domain.ValueTypes;
 
 namespace LinkForge.Application.Services.Implementations;
 
@@ -12,6 +13,7 @@ public class LinksProcessService(
 {
     public async Task<string> ProcessLinkAsync(
         LinkOriginalUrl url,
+        EntityId ownerId,
         CancellationToken ct = default)
     {
         var guid = Guid.CreateVersion7().ToString();
@@ -19,6 +21,7 @@ public class LinksProcessService(
 
         var link = new Link
         {
+            OwnerId = ownerId,
             Code = (LinkCode)code,
             OriginalUrl = url,
         };
