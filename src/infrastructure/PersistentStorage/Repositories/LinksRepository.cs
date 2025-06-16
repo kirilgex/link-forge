@@ -32,9 +32,11 @@ internal sealed class LinksRepository(IOptions<DatabaseSettings> settings)
             new("$limit", 1)
         ];
 
-        return (Link?)await Collection
-            .Aggregate<LinkDto>(pipeline)
+        var result = await Collection
+            .Aggregate<LinkWithOwnerDto>(pipeline, cancellationToken: ct)
             .FirstOrDefaultAsync(ct);
+
+        return result?.ToLink();
     }
     
     public async Task InsertAsync(

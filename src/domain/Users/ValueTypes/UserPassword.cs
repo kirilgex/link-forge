@@ -59,5 +59,5 @@ public record struct UserPassword(string Value)
         return true;
     }
 
-    public static implicit operator string(UserPassword source) => source.Value;
+    public override string ToString() => Value;
 }

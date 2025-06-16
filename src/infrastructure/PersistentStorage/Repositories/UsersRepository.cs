@@ -19,7 +19,7 @@ internal sealed class UsersRepository(IOptions<DatabaseSettings> settings)
         CancellationToken ct = default)
     {
         return await Collection
-            .Find(x => x.Email == email)
+            .Find(x => x.Email == email.ToString())
             .AnyAsync(ct);
     }
 
@@ -27,9 +27,10 @@ internal sealed class UsersRepository(IOptions<DatabaseSettings> settings)
         UserEmail email,
         CancellationToken ct = default)
     {
-        return (User?)await Collection
-            .Find(x => x.Email == email)
+        var result = await Collection
+            .Find(x => x.Email == email.ToString())
             .FirstOrDefaultAsync(ct);
+        return result.ToUser();
     }
     
     public async Task InsertAsync(

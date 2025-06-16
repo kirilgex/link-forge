@@ -39,7 +39,7 @@ public class AuthService(
     {
         var user = new User(email);
 
-        user.PasswordHash = PasswordHasher.HashPassword(user, password);
+        user.PasswordHash = PasswordHasher.HashPassword(user, password.ToString());
 
         await usersRepository.InsertAsync(user, ct);
     }
@@ -54,7 +54,7 @@ public class AuthService(
         if (user is null || user.PasswordHash is null)
             return null;
 
-        var verificationResult = PasswordHasher.VerifyHashedPassword(user, user.PasswordHash, password);
+        var verificationResult = PasswordHasher.VerifyHashedPassword(user, user.PasswordHash, password.ToString());
 
         if (verificationResult is PasswordVerificationResult.Failed)
             return null;

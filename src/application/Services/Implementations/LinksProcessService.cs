@@ -19,7 +19,7 @@ public class LinksProcessService(
         var guid = Guid.CreateVersion7().ToString();
         var code = hashingService.ComputeHashAsHexString(guid);
 
-        var link = new Link(ownerId, (LinkCode)code, url);
+        var link = new Link(ownerId, new LinkCode(code), url);
     
         await linksRepository.InsertAsync(link, ct);
 

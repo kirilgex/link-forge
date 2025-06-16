@@ -50,7 +50,7 @@ public static class PostLinkEndpoint
                 detail: "Invalid auth token.",
                 statusCode: StatusCodes.Status400BadRequest);
 
-        var code = await linksProcessService.ProcessLinkAsync(url, (EntityId)userId.Value, ct);
+        var code = await linksProcessService.ProcessLinkAsync(url, new EntityId(userId.Value), ct);
 
         var version = context.GetRequestedApiVersion() ?? new ApiVersion(majorVersion: 0);
         var endpointName = GetLinkEndpoint.GetNameWithVersion(version);

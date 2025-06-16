@@ -37,11 +37,11 @@ public static class GetLinkEndpoint
                 statusCode: StatusCodes.Status400BadRequest);
 
         var result = await linksLookupService.FindLinkAsync(
-            LinkCode.FromUserInput(code), ct);
+            LinkCode.FromUserInput(code).ToString(), ct);
 
         if (result is null) return Results.NotFound();
 
-        return Results.Ok(new Response(result.Url));
+        return Results.Ok(new Response(result.Url.ToString()));
     }
 
     private record Response(string Link)

@@ -22,7 +22,5 @@ public record struct UserEmail(string Value)
         return true;
     }
 
-    public static explicit operator UserEmail(string source) => new(source);
-
-    public static implicit operator string(UserEmail source) => source.Value;
+    public override string ToString() => Value;
 }

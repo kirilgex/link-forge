@@ -30,7 +30,5 @@ public record struct LinkUrl(string Value)
         return true;
     }
 
-    public static explicit operator LinkUrl(string source) => new(source);
-
-    public static implicit operator string(LinkUrl source) => source.Value;
+    public override string ToString() => Value;
 }

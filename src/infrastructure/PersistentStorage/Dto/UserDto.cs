@@ -12,18 +12,16 @@ public record UserDto
     public required string Email { get; init; }
     public required string PasswordHash { get; init; }
 
+    public virtual User ToUser()
+        => new(
+            id: new EntityId(Id.ToString()),
+            email: new UserEmail(Email),
+            passwordHash: PasswordHash);
+
     public static explicit operator UserDto(User source)
         => new()
         {
-            Email = source.Email,
+            Email = source.Email.ToString(),
             PasswordHash  = source.PasswordHash!,
         };
-
-    public static explicit operator User?(UserDto? source)
-        => source is null
-            ? null
-            : new User(
-                (EntityId)source.Id.ToString(),
-                (UserEmail)source.Email,
-                source.PasswordHash);
 }
