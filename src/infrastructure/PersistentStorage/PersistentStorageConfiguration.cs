@@ -16,6 +16,7 @@ public static class PersistentStorageConfiguration
     {
         services.AddScoped<IUsersRepository, UsersRepository>();
         services.AddScoped<ILinksRepository, LinksRepository>();
+        services.AddScoped<IRefreshTokensRepository, RefreshTokensRepository>();
         return services;
     }
 
@@ -27,6 +28,7 @@ public static class PersistentStorageConfiguration
 
         RegisterUserClassMap();
         RegisterLinkClassMap();
+        RegisterRefreshTokenClassMap();
 
         var client = new MongoClient(settings.Value.ConnectionString);
         var database = client.GetDatabase(settings.Value.DatabaseName);
@@ -35,6 +37,8 @@ public static class PersistentStorageConfiguration
             database.GetCollection<UserDto>(UsersRepository.CollectionName));
         await EnsureLinksCollectionIndexes(
             database.GetCollection<LinkDto>(LinksRepository.CollectionName));
+        await EnsureRefreshTokensCollectionIndexes(
+            database.GetCollection<RefreshTokenDto>(RefreshTokensRepository.CollectionName));
     }
 
     private static void RegisterUserClassMap()
@@ -65,6 +69,22 @@ public static class PersistentStorageConfiguration
             });
         }
     }
+    
+    private static void RegisterRefreshTokenClassMap()
+    {
+        if (!BsonClassMap.IsClassMapRegistered(typeof(RefreshTokenDto)))
+        {
+            BsonClassMap.RegisterClassMap<RefreshTokenDto>(cm =>
+            {
+                cm.AutoMap();
+                cm.MapIdMember(x => x.Id);
+                cm.MapMember(x => x.UserId).SetElementName("userId");
+                cm.MapMember(x => x.UserAgent).SetElementName("userAgent");
+                cm.MapMember(x => x.TokenHash).SetElementName("tokenHash");
+            });
+        }
+    }
+
     private static async Task EnsureUsersCollectionIndexes(IMongoCollection<UserDto> collection)
     {
         var indexes = new[]
@@ -83,6 +103,18 @@ public static class PersistentStorageConfiguration
         {
             new CreateIndexModel<LinkDto>(
                 Builders<LinkDto>.IndexKeys.Ascending(x => x.Code),
+                new CreateIndexOptions { Unique = true, })
+        };
+        
+        await collection.Indexes.CreateManyAsync(indexes);
+    }
+
+    private static async Task EnsureRefreshTokensCollectionIndexes(IMongoCollection<RefreshTokenDto> collection)
+    {
+        var indexes = new[]
+        {
+            new CreateIndexModel<RefreshTokenDto>(
+                Builders<RefreshTokenDto>.IndexKeys.Ascending(x => x.UserId).Ascending(x => x.UserAgent),
                 new CreateIndexOptions { Unique = true, })
         };
         

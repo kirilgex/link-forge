@@ -1,3 +1,5 @@
+using LinkForge.Application.DTO;
+using LinkForge.Application.Entities;
 using LinkForge.Domain.Users;
 using LinkForge.Domain.Users.ValueTypes;
 
@@ -19,5 +21,13 @@ public interface IAuthService
         UserPassword password,
         CancellationToken ct = default);
 
-    public string CreateAuthToken(User user);
+    public Task<AuthTokenPair> CreateAuthTokensAsync(
+        User user,
+        UserAgent userAgent,
+        CancellationToken ct = default);
+
+    Task<AuthTokenPair?> RefreshTokensAsync(
+        string refreshToken,
+        UserAgent userAgent,
+        CancellationToken ct = default);
 }

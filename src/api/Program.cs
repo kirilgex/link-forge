@@ -28,7 +28,7 @@ builder.Services
             ValidIssuer = builder.Configuration["Auth:Issuer"],
             ValidAudience = builder.Configuration["Auth:Audience"],
             IssuerSigningKey = new SymmetricSecurityKey(
-                Encoding.UTF8.GetBytes(builder.Configuration["Auth:SecretKey"]!)),
+                Encoding.UTF8.GetBytes(builder.Configuration["Auth:AccessToken:SecretKey"]!)),
         };
     });
 
@@ -43,7 +43,8 @@ builder.Services.AddApiVersioning(options =>
 
 builder.Services
     .Configure<DatabaseSettings>(builder.Configuration.GetSection("Database"))
-    .Configure<HashingSettings>(builder.Configuration.GetSection("Hashing"));
+    .Configure<HashingSettings>(builder.Configuration.GetSection("Hashing"))
+    .Configure<AuthSettings>(builder.Configuration.GetSection("Auth"));
 
 builder.Services
     .AddPersistentStorageServices()
@@ -69,6 +70,7 @@ var group_v0 = app
 group_v0
     .MapRegisterEndpoint(ApiVersions.V0)
     .MapLoginEndpoint(ApiVersions.V0)
+    .MapRefreshTokenEndpoint(ApiVersions.V0)
     .MapPostLinkEndpoint(ApiVersions.V0)
     .MapGetLinkEndpoint(ApiVersions.V0);
 

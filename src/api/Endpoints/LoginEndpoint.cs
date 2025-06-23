@@ -40,9 +40,16 @@ public static class LoginEndpoint
         if (user is null)
             return Results.Unauthorized();
 
-        var token = authService.CreateAuthToken(user);
+        context.Request.Headers.TryGetValue("User-Agent", out var userAgent);
+        var tokenPair = await authService.CreateAuthTokensAsync(
+            user, new Application.Entities.UserAgent(userAgent), ct);
 
-        return Results.Ok(new { token });
+        return Results.Ok(
+            new
+            {
+                accessToken = tokenPair.AccessToken,
+                refreshToken = tokenPair.RefreshToken,
+            });
     }
 
     private record LoginRequest(string Email, string Password);
