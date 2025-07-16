@@ -1,23 +1,19 @@
-using Asp.Versioning;
-
 using LinkForge.Application.Services.Interfaces;
 using LinkForge.Domain.Users.ValueTypes;
 
-namespace LinkForge.API.Endpoints;
+namespace LinkForge.API.Endpoints.Auth;
 
 public static class RegisterEndpoint
 {
-    public static string GetNameWithVersion(ApiVersion? version)
-        => $"register-v-{version?.MajorVersion ?? 0}";
-
-    public static RouteGroupBuilder MapRegisterEndpoint(
-        this RouteGroupBuilder group,
-        ApiVersion? apiVersion = null)
+    public static IEndpointRouteBuilder MapRegisterEndpoint(this IEndpointRouteBuilder app)
     {
-        group
-            .MapPost("register", HandleAsync)
-            .WithName(GetNameWithVersion(apiVersion));
-        return group;
+        app
+            .MapPost(AuthEndpointsSettings.RegisterEndpointPattern, HandleAsync)
+            .WithName(AuthEndpointsSettings.RegisterEndpointName)
+            .WithTags(AuthEndpointsSettings.Tags)
+            .Produces(StatusCodes.Status201Created)
+            .Produces(StatusCodes.Status400BadRequest);
+        return app;
     }
 
     private static async Task<IResult> HandleAsync(
@@ -28,30 +24,32 @@ public static class RegisterEndpoint
         CancellationToken ct = default)
     {
         if (!UserEmail.TryParseFromUserInput(request.Email, out var email))
-            return Results.Problem(
+        {
+            return TypedResults.Problem(
                 title: "Invalid Request",
                 detail: "Valid email is required.",
                 statusCode: StatusCodes.Status400BadRequest);
+        }
 
         if (!UserPassword.TryParseFromUserInput(request.Password, out var password))
-            return Results.Problem(
+        {
+            return TypedResults.Problem(
                 title: "Invalid Request",
                 detail: UserPassword.GetPasswordRestrictions(),
                 statusCode: StatusCodes.Status400BadRequest);
+        }
 
         if (await authService.UserExistsAsync(email, ct))
-            return Results.Problem(
+        {
+            return TypedResults.Problem(
                 title: "Invalid Request",
                 detail: "User already exists.",
                 statusCode: StatusCodes.Status400BadRequest);
+        }
 
-        await authService.CreateUserAsync(email, password);
+        await authService.CreateUserAsync(email, password, ct);
 
-        var version = context.GetRequestedApiVersion() ?? new ApiVersion(majorVersion: 0);
-        var endpointName = LoginEndpoint.GetNameWithVersion(version);
-        context.Response.Headers.Location = linkGenerator.GetUriByName(context, endpointName);
-
-        return Results.Created();
+        return TypedResults.CreatedAtRoute(AuthEndpointsSettings.LoginEndpointName, null);
     }
 
     private record RegisterRequest(string Email, string Password);

@@ -14,7 +14,7 @@ public record RefreshTokenDto
     public static explicit operator RefreshTokenDto(RefreshToken source)
         => new()
         {
-            Id = source.Id.Value is null ? ObjectId.Empty : ObjectId.Parse(source.Id.ToString()),
+            Id = source?.Id?.Value is null ? ObjectId.Empty : ObjectId.Parse(source.Id.ToString()),
             UserId = ObjectId.Parse(source.User.Id.ToString()),
             UserAgent = source.UserAgent.ToString(),
             TokenHash = source.TokenHash,

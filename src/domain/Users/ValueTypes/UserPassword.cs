@@ -13,21 +13,21 @@ public record struct UserPassword(string Value)
     {
         var sb = new StringBuilder();
 
-        sb.Append("Password is required and must: ");
+        sb.Append("Password is required and must ");
 
         if (MinimalLength > 0)
-            sb.Append($"be at least {MinimalLength} characters long; ");
+            sb.Append($"be at least {MinimalLength} characters long, ");
 
         if (UppercaseLetters)
-            sb.Append("contain at least one uppercase character; ");
+            sb.Append("contain at least one uppercase character, ");
 
         if (LowercaseLetters)
-            sb.Append("contain at least one lowercase character; ");
+            sb.Append("contain at least one lowercase character, ");
 
         if (Digits)
-            sb.Append("contain at least one digit; ");
+            sb.Append("contain at least one digit, ");
 
-        return sb.ToString().Trim();
+        return $"{sb.ToString().TrimEnd(',', ' ')}.";
     }
 
     public static UserPassword ParseFromUserInput(string input)

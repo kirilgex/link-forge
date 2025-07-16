@@ -7,12 +7,13 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="Asp.Versioning.Http" Version="8.1.0" />
+    <ProjectReference Include="../application/LinkForge.Application.csproj" />
+    <ProjectReference Include="../infrastructure/LinkForge.Infrastructure.csproj" />
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="../application/LinkForge.Application.csproj" />
-    <ProjectReference Include="../infrastructure/LinkForge.Infrastructure.csproj" />
+    <PackageReference Include="Microsoft.AspNetCore.OpenApi" Version="9.0.7" />
+    <PackageReference Include="Scalar.AspNetCore" Version="2.6.3" />
   </ItemGroup>
 
 </Project>

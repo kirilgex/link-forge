@@ -1,13 +1,15 @@
 using System.Text;
 
-using LinkForge.API;
-using LinkForge.API.Endpoints;
+using LinkForge.API.Endpoints.Auth;
+using LinkForge.API.Endpoints.Links;
 using LinkForge.Application;
 using LinkForge.Application.Settings;
 using LinkForge.Infrastructure.PersistentStorage;
 
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
+
+using Scalar.AspNetCore;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -34,13 +36,6 @@ builder.Services
 
 builder.Services.AddAuthorization();
 
-builder.Services.AddApiVersioning(options =>
-{
-    options.ReportApiVersions = true;
-    options.DefaultApiVersion = ApiVersions.V0;
-    options.AssumeDefaultVersionWhenUnspecified = true;
-});
-
 builder.Services
     .Configure<DatabaseSettings>(builder.Configuration.GetSection("Database"))
     .Configure<HashingSettings>(builder.Configuration.GetSection("Hashing"))
@@ -50,6 +45,8 @@ builder.Services
     .AddPersistentStorageServices()
     .AddApplicationLayerServices();
 
+builder.Services.AddOpenApi();
+
 var app = builder.Build();
 
 app.UseHttpsRedirection();
@@ -57,22 +54,18 @@ app.UseHttpsRedirection();
 app.UseAuthentication();
 app.UseAuthorization();
 
-var apiSet_v0 = app
-    .NewApiVersionSet()
-    .HasApiVersion(ApiVersions.V0)
-    .ReportApiVersions()
-    .Build();
+if (app.Environment.IsDevelopment())
+{
+    app.MapOpenApi();
+    app.MapScalarApiReference();
+}
 
-var group_v0 = app
-    .MapGroup("api/v{version:apiVersion}")
-    .WithApiVersionSet(apiSet_v0);
-
-group_v0
-    .MapRegisterEndpoint(ApiVersions.V0)
-    .MapLoginEndpoint(ApiVersions.V0)
-    .MapRefreshTokenEndpoint(ApiVersions.V0)
-    .MapPostLinkEndpoint(ApiVersions.V0)
-    .MapGetLinkEndpoint(ApiVersions.V0);
+app
+    .MapRegisterEndpoint()
+    .MapLoginEndpoint()
+    .MapRefreshTokenEndpoint()
+    .MapPostLinkEndpoint()
+    .MapGetLinkEndpoint();
 
 await app.Services.ConfigurePersistentStorageAsync();
 

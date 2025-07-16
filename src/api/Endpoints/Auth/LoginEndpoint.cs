@@ -1,23 +1,20 @@
-using Asp.Versioning;
-
 using LinkForge.Application.Services.Interfaces;
 using LinkForge.Domain.Users.ValueTypes;
 
-namespace LinkForge.API.Endpoints;
+namespace LinkForge.API.Endpoints.Auth;
 
 public static class LoginEndpoint
 {
-    public static string GetNameWithVersion(ApiVersion? version)
-        => $"login-v-{version?.MajorVersion ?? 0}";
-
-    public static RouteGroupBuilder MapLoginEndpoint(
-        this RouteGroupBuilder group,
-        ApiVersion? apiVersion = null)
+    public static IEndpointRouteBuilder MapLoginEndpoint(this IEndpointRouteBuilder app)
     {
-        group
-            .MapPost("login", HandleAsync)
-            .WithName(GetNameWithVersion(apiVersion));
-        return group;
+        app
+            .MapPost(AuthEndpointsSettings.LoginEndpointPattern, HandleAsync)
+            .WithName(AuthEndpointsSettings.LoginEndpointName)
+            .WithTags(AuthEndpointsSettings.Tags)
+            .Produces<LoginResponse>(StatusCodes.Status200OK)
+            .Produces(StatusCodes.Status400BadRequest)
+            .Produces(StatusCodes.Status401Unauthorized);
+        return app;
     }
 
     private static async Task<IResult> HandleAsync(
@@ -27,10 +24,12 @@ public static class LoginEndpoint
         CancellationToken ct = default)
     {
         if (string.IsNullOrWhiteSpace(request.Email) || string.IsNullOrWhiteSpace(request.Password))
-            return Results.Problem(
+        {
+            return TypedResults.Problem(
                 title: "Invalid Request",
                 detail: "Email and password required.",
                 statusCode: StatusCodes.Status400BadRequest);
+        }
 
         var user = await authService.AuthenticateUserAsync(
             UserEmail.ParseFromUserInput(request.Email),
@@ -38,19 +37,18 @@ public static class LoginEndpoint
             ct);
 
         if (user is null)
-            return Results.Unauthorized();
+        {
+            return TypedResults.Unauthorized();
+        }
 
         context.Request.Headers.TryGetValue("User-Agent", out var userAgent);
         var tokenPair = await authService.CreateAuthTokensAsync(
             user, new Application.Entities.UserAgent(userAgent), ct);
 
-        return Results.Ok(
-            new
-            {
-                accessToken = tokenPair.AccessToken,
-                refreshToken = tokenPair.RefreshToken,
-            });
+        return TypedResults.Ok(new LoginResponse(tokenPair.AccessToken, tokenPair.RefreshToken));
     }
 
     private record LoginRequest(string Email, string Password);
+
+    private record LoginResponse(string AccessToken, string RefreshToken);
 }
