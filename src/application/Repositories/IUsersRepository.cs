@@ -14,10 +14,6 @@ public interface IUsersRepository
         UserEmail email,
         CancellationToken ct = default);
 
-    Task<User?> FindAsync(
-        EntityId userId,
-        CancellationToken ct = default);
-
     Task InsertAsync(
         User user,
         CancellationToken ct = default);

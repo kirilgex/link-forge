@@ -83,10 +83,17 @@ public class AuthService(
         var refreshToken = CreateRefreshToken(claims, tokenHandler);
 
         var oldRefreshTokenData = await refreshTokensRepository.FindAsync(user.Id, userAgent, ct);
+        var newRefreshTokenData = new RefreshToken(
+            oldRefreshTokenData?.Id, user, userAgent, ComputeRefreshTokenHash(refreshToken));
 
-        await refreshTokensRepository.ReplaceOneAsync(
-            new RefreshToken(oldRefreshTokenData?.Id, user, userAgent, ComputeRefreshTokenHash(refreshToken)),
-            ct);
+        if (oldRefreshTokenData is null)
+        {
+            await refreshTokensRepository.InsertAsync(newRefreshTokenData, ct);
+        }
+        else
+        {
+            await refreshTokensRepository.ReplaceOneAsync(newRefreshTokenData, ct);
+        }
 
         return new AuthTokenPair(accessToken, refreshToken);
     }

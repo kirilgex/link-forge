@@ -1,16 +1,8 @@
-using LinkForge.Application.Entities;
-using LinkForge.Domain.ValueTypes;
+using LinkForge.Infrastructure.PersistentStorage.Documents;
 
 namespace LinkForge.Infrastructure.PersistentStorage.Dto;
 
-public record RefreshTokenWithUserDto : RefreshTokenDto
+internal class RefreshTokenWithUserDto : RefreshTokenDocument
 {
-    public required UserDto User { get; init; }
-
-    public virtual RefreshToken ToRefreshToken()
-        => new(
-            id: new EntityId(Id.ToString()),
-            user: User.ToUser(),
-            userAgent: new UserAgent(UserAgent),
-            tokenHash: TokenHash);
+    public required UserDocument User { get; init; }
 }

@@ -10,6 +10,10 @@ public interface IRefreshTokensRepository
         UserAgent userAgent,
         CancellationToken ct = default);
 
+    Task InsertAsync(
+        RefreshToken token,
+        CancellationToken ct = default);
+
     Task ReplaceOneAsync(
         RefreshToken token,
         CancellationToken ct = default);

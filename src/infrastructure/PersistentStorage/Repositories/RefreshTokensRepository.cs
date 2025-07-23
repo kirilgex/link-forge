@@ -1,7 +1,9 @@
 using LinkForge.Application.Entities;
 using LinkForge.Application.Repositories;
 using LinkForge.Domain.ValueTypes;
+using LinkForge.Infrastructure.PersistentStorage.Documents;
 using LinkForge.Infrastructure.PersistentStorage.Dto;
+using LinkForge.Infrastructure.PersistentStorage.Mappers;
 
 using Microsoft.Extensions.Options;
 
@@ -10,11 +12,13 @@ using MongoDB.Driver;
 
 namespace LinkForge.Infrastructure.PersistentStorage.Repositories;
 
-internal sealed class RefreshTokensRepository(IOptions<DatabaseSettings> settings)
-    : BaseRepository<RefreshTokenDto>(settings, CollectionName), IRefreshTokensRepository
+internal sealed class RefreshTokensRepository(
+    IOptions<DatabaseSettings> settings,
+    RefreshTokenMapper mapper)
+    :
+        AbstractRepository<RefreshTokenDocument>(settings, RefreshTokenDocument.CollectionName),
+        IRefreshTokensRepository
 {
-    public const string CollectionName = "refreshTokens";
-
     public async Task<RefreshToken?> FindAsync(
         EntityId userId,
         UserAgent userAgent,
@@ -42,22 +46,32 @@ internal sealed class RefreshTokensRepository(IOptions<DatabaseSettings> setting
             .Aggregate<RefreshTokenWithUserDto>(pipeline, cancellationToken: ct)
             .FirstOrDefaultAsync(ct);
 
-        return result?.ToRefreshToken();
+        return result is null ? null : mapper.ToDomainModel(result);
+    }
+    
+    public async Task InsertAsync(
+        RefreshToken token,
+        CancellationToken ct = default)
+    {
+        await Collection.InsertOneAsync(
+            mapper.ToDocument(token),
+            options: null,
+            ct);
     }
 
     public async Task ReplaceOneAsync(
         RefreshToken token,
         CancellationToken ct = default)
     {
-        var dto = (RefreshTokenDto)token;
-
-        var filter = Builders<RefreshTokenDto>.Filter.And(
-            Builders<RefreshTokenDto>.Filter.Eq(x => x.UserId, dto.UserId),
-            Builders<RefreshTokenDto>.Filter.Eq(x => x.UserAgent, dto.UserAgent));
+        var document = mapper.ToDocument(token);
+        
+        var filter = Builders<RefreshTokenDocument>.Filter.And(
+            Builders<RefreshTokenDocument>.Filter.Eq(x => x.UserId, document.UserId),
+            Builders<RefreshTokenDocument>.Filter.Eq(x => x.UserAgent, document.UserAgent));
 
         await Collection.ReplaceOneAsync(
             filter: filter,
-            replacement: dto,
+            replacement: document,
             options: new ReplaceOptions { IsUpsert = true, },
             cancellationToken: ct);
     }
