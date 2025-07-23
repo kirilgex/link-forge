@@ -1,6 +1,6 @@
 using LinkForge.Application.Repositories;
 using LinkForge.Application.Services.Interfaces;
-using LinkForge.Domain;
+using LinkForge.Domain.Links;
 
 namespace LinkForge.Application.Services.Implementations;
 

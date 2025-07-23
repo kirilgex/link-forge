@@ -11,6 +11,7 @@ public static class ApplicationLayerConfiguration
     {
         services.AddSingleton<IHashingService, MurmurHashingService>();
 
+        services.AddScoped<IAuthService, AuthService>();
         services.AddScoped<ILinksProcessService, LinksProcessService>();
         services.AddScoped<ILinksLookupService, LinksLookupService>();
 

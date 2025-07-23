@@ -1,14 +1,15 @@
 using LinkForge.Application.Repositories;
-using LinkForge.Domain;
+using LinkForge.Domain.Links;
 using LinkForge.Infrastructure.PersistentStorage.Dto;
 
 using Microsoft.Extensions.Options;
 
+using MongoDB.Bson;
 using MongoDB.Driver;
 
 namespace LinkForge.Infrastructure.PersistentStorage.Repositories;
 
-public class LinksRepository(IOptions<DatabaseSettings> settings)
+internal sealed class LinksRepository(IOptions<DatabaseSettings> settings)
     : BaseRepository<LinkDto>(settings, CollectionName), ILinksRepository
 {
     public const string CollectionName = "links";
@@ -17,9 +18,25 @@ public class LinksRepository(IOptions<DatabaseSettings> settings)
         string code,
         CancellationToken ct = default)
     {
-        return (Link?) await Collection
-            .Find(x => x.Code == code)
+        BsonDocument[] pipeline =
+        [
+            new("$match", new BsonDocument("code", code)),
+            new("$lookup", new BsonDocument
+            {
+                { "from", "users" },
+                { "localField", "ownerId" },
+                { "foreignField", "_id" },
+                { "as", "Owner" },
+            }),
+            new("$unwind", "$Owner"),
+            new("$limit", 1)
+        ];
+
+        var result = await Collection
+            .Aggregate<LinkWithOwnerDto>(pipeline, cancellationToken: ct)
             .FirstOrDefaultAsync(ct);
+
+        return result?.ToLink();
     }
     
     public async Task InsertAsync(
@@ -27,7 +44,7 @@ public class LinksRepository(IOptions<DatabaseSettings> settings)
         CancellationToken ct = default)
     {
         await Collection.InsertOneAsync(
-            (LinkDto) link,
+            (LinkDto)link,
             options: null,
             ct);
     }

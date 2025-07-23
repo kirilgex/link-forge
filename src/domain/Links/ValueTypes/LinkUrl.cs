@@ -1,12 +1,12 @@
-namespace LinkForge.Domain.ValueTypes;
+namespace LinkForge.Domain.Links.ValueTypes;
 
-public record struct LinkOriginalUrl(string Value)
+public record struct LinkUrl(string Value)
 {
-    public static bool TryParseFromUserInput(string input, out LinkOriginalUrl result)
+    public static bool TryParseFromUserInput(string input, out LinkUrl result)
     {
         result = default;
 
-        input = input.Trim();
+        input = input.ToLowerInvariant().Trim();
 
         if (!input.StartsWith("http://", StringComparison.InvariantCultureIgnoreCase)
             && !input.StartsWith("https://", StringComparison.InvariantCultureIgnoreCase))
@@ -18,19 +18,17 @@ public record struct LinkOriginalUrl(string Value)
 
         var builder = new UriBuilder(uri)
         {
-            Scheme = uri.Scheme.ToLowerInvariant(),
-            Host = uri.Host.ToLowerInvariant(),
+            Scheme = uri.Scheme,
+            Host = uri.Host,
             Port = uri is { Scheme: "http", Port: 80 } or { Scheme: "https", Port: 443 }
                 ? -1
                 : uri.Port,
         };
 
-        result = new LinkOriginalUrl(builder.ToString().TrimEnd('/'));
+        result = new LinkUrl(builder.ToString().TrimEnd('/'));
 
         return true;
     }
 
-    public static explicit operator LinkOriginalUrl(string source) => new(source);
-
-    public static implicit operator string(LinkOriginalUrl source) => source.Value;
+    public override string ToString() => Value;
 }
