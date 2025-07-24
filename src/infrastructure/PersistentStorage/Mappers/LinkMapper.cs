@@ -1,6 +1,5 @@
 ﻿using LinkForge.Domain.Links;
-using LinkForge.Domain.Links.ValueTypes;
-using LinkForge.Domain.ValueTypes;
+using LinkForge.Domain.Links.ValueObjects;
 using LinkForge.Infrastructure.PersistentStorage.Documents;
 using LinkForge.Infrastructure.PersistentStorage.Dto;
 
@@ -15,19 +14,21 @@ internal class LinkMapper(
     {
         return new LinkDocument
         {
-            OwnerId = ObjectId.Parse(model.OwnerId.ToString()),
-            Code = model.Code.ToString(),
-            Url = model.Url.ToString(),
+            OwnerId = model.OwnerId,
+            Code = model.Code,
+            Url = model.Url,
         };
     }
 
-    public Link ToDomainModel(LinkWithOwnerDto document)
+    public Link ToModel(LinkWithOwnerDto document)
     {
-        return new Link(
-            id: new EntityId(document.Id.ToString()),
-            ownerId: new EntityId(document.OwnerId.ToString()),
-            owner: userMapper.ToDomainModel(document.Owner),
-            code: new LinkCode(document.Code),
-            url: new LinkUrl(document.Url));
+        return new Link
+        {
+            Id = document.Id,
+            OwnerId = document.OwnerId,
+            Owner = userMapper.ToModel(document.Owner),
+            Code = LinkCode.FromTrusted(document.Code),
+            Url = LinkUrl.FromTrusted(document.Url),
+        };
     }
 }

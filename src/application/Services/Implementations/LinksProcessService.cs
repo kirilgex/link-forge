@@ -1,8 +1,9 @@
 using LinkForge.Application.Repositories;
 using LinkForge.Application.Services.Interfaces;
 using LinkForge.Domain.Links;
-using LinkForge.Domain.Links.ValueTypes;
-using LinkForge.Domain.ValueTypes;
+using LinkForge.Domain.Links.ValueObjects;
+
+using MongoDB.Bson;
 
 namespace LinkForge.Application.Services.Implementations;
 
@@ -13,13 +14,13 @@ public class LinksProcessService(
 {
     public async Task<string> ProcessLinkAsync(
         LinkUrl url,
-        EntityId ownerId,
+        ObjectId ownerId,
         CancellationToken ct = default)
     {
         var guid = Guid.CreateVersion7().ToString();
         var code = hashingService.ComputeHashAsHexString(guid);
 
-        var link = new Link(ownerId, new LinkCode(code), url);
+        var link = new Link { OwnerId = ownerId, Code = LinkCode.FromTrusted(code), Url = url, };
     
         await linksRepository.InsertAsync(link, ct);
 

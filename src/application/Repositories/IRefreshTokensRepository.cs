@@ -1,12 +1,14 @@
-using LinkForge.Application.Entities;
-using LinkForge.Domain.ValueTypes;
+using LinkForge.Domain.Users;
+using LinkForge.Domain.Users.ValueObjects;
+
+using MongoDB.Bson;
 
 namespace LinkForge.Application.Repositories;
 
 public interface IRefreshTokensRepository
 {
     Task<RefreshToken?> FindAsync(
-        EntityId userId,
+        ObjectId userId,
         UserAgent userAgent,
         CancellationToken ct = default);
 

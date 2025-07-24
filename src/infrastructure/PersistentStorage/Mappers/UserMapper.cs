@@ -1,6 +1,5 @@
 ﻿using LinkForge.Domain.Users;
-using LinkForge.Domain.Users.ValueTypes;
-using LinkForge.Domain.ValueTypes;
+using LinkForge.Domain.Users.ValueObjects;
 using LinkForge.Infrastructure.PersistentStorage.Documents;
 
 namespace LinkForge.Infrastructure.PersistentStorage.Mappers;
@@ -11,16 +10,18 @@ internal class UserMapper
     {
         return new UserDocument
         {
-            Email = model.Email.ToString(),
+            Email = model.Email,
             PasswordHash = model.PasswordHash,
         };
     }
 
-    public User ToDomainModel(UserDocument document)
+    public User ToModel(UserDocument document)
     {
-        return new User(
-            id: new EntityId(document.Id.ToString()),
-            email: new UserEmail(document.Email),
-            passwordHash: document.PasswordHash);
+        return new User
+        {
+            Id = document.Id,
+            Email = UserEmail.FromTrusted(document.Email),
+            PasswordHash = document.PasswordHash,
+        };
     }
 }

@@ -1,5 +1,6 @@
 using LinkForge.Application.Services.Interfaces;
-using LinkForge.Domain.Users.ValueTypes;
+using LinkForge.Domain.Users;
+using LinkForge.Domain.Users.ValueObjects;
 
 namespace LinkForge.API.Endpoints.Auth;
 
@@ -43,7 +44,7 @@ public static class LoginEndpoint
 
         context.Request.Headers.TryGetValue("User-Agent", out var userAgent);
         var tokenPair = await authService.CreateAuthTokensAsync(
-            user, new Application.Entities.UserAgent(userAgent), ct);
+            user, new UserAgent(userAgent), ct);
 
         return TypedResults.Ok(new LoginResponse(tokenPair.AccessToken, tokenPair.RefreshToken));
     }

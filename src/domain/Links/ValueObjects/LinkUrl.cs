@@ -1,7 +1,14 @@
-namespace LinkForge.Domain.Links.ValueTypes;
+namespace LinkForge.Domain.Links.ValueObjects;
 
-public record struct LinkUrl(string Value)
+public readonly struct LinkUrl
 {
+    private string Value { get; }
+
+    private LinkUrl(string value)
+    {
+        Value = value;
+    }
+    
     public static bool TryParseFromUserInput(string input, out LinkUrl result)
     {
         result = default;
@@ -25,10 +32,17 @@ public record struct LinkUrl(string Value)
                 : uri.Port,
         };
 
-        result = new LinkUrl(builder.ToString().TrimEnd('/'));
+        result = new LinkUrl(builder.ToString());
 
         return true;
     }
+    
+    public static LinkUrl FromTrusted(string value)
+    {
+        return new LinkUrl(value);
+    }
 
     public override string ToString() => Value;
+    
+    public static implicit operator string(LinkUrl url) => url.Value;
 }

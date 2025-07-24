@@ -4,17 +4,17 @@ using System.Security.Cryptography;
 using System.Text;
 
 using LinkForge.Application.DTO;
-using LinkForge.Application.Entities;
 using LinkForge.Application.Repositories;
 using LinkForge.Application.Services.Interfaces;
 using LinkForge.Application.Settings;
 using LinkForge.Domain.Users;
-using LinkForge.Domain.Users.ValueTypes;
-using LinkForge.Domain.ValueTypes;
+using LinkForge.Domain.Users.ValueObjects;
 
 using Microsoft.AspNetCore.Identity;
 using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
+
+using MongoDB.Bson;
 
 namespace LinkForge.Application.Services.Implementations;
 
@@ -42,9 +42,9 @@ public class AuthService(
         UserPassword password,
         CancellationToken ct = default)
     {
-        var user = new User(email);
+        var user = new User { Email = email, };
 
-        user.PasswordHash = PasswordHasher.HashPassword(user, password.ToString());
+        user.PasswordHash = PasswordHasher.HashPassword(user, password);
 
         await usersRepository.InsertAsync(user, ct);
     }
@@ -59,7 +59,7 @@ public class AuthService(
         if (user is null || user.PasswordHash is null)
             return null;
 
-        var verificationResult = PasswordHasher.VerifyHashedPassword(user, user.PasswordHash, password.ToString());
+        var verificationResult = PasswordHasher.VerifyHashedPassword(user, user.PasswordHash, password);
 
         if (verificationResult is PasswordVerificationResult.Failed)
             return null;
@@ -83,8 +83,13 @@ public class AuthService(
         var refreshToken = CreateRefreshToken(claims, tokenHandler);
 
         var oldRefreshTokenData = await refreshTokensRepository.FindAsync(user.Id, userAgent, ct);
-        var newRefreshTokenData = new RefreshToken(
-            oldRefreshTokenData?.Id, user, userAgent, ComputeRefreshTokenHash(refreshToken));
+        var newRefreshTokenData = new RefreshToken
+        {
+            Id = oldRefreshTokenData?.Id ?? default,
+            User = user,
+            UserAgent = userAgent,
+            TokenHash = ComputeRefreshTokenHash(refreshToken)
+        };
 
         if (oldRefreshTokenData is null)
         {
@@ -138,7 +143,7 @@ public class AuthService(
             return null;
 
         var refreshTokenData = await refreshTokensRepository.FindAsync(
-            new EntityId(userIdClaim.Value),
+            ObjectId.Parse(userIdClaim.Value),
             userAgent,
             ct);
 
@@ -152,11 +157,13 @@ public class AuthService(
         var newRefreshToken = CreateRefreshToken(principal.Claims, tokenHandler);
 
         await refreshTokensRepository.ReplaceOneAsync(
-            new RefreshToken(
-                refreshTokenData.Id,
-                refreshTokenData.User,
-                userAgent,
-                ComputeRefreshTokenHash(newRefreshToken)),
+            new RefreshToken
+            {
+                Id = refreshTokenData.Id,
+                User = refreshTokenData.User,
+                UserAgent = userAgent,
+                TokenHash = ComputeRefreshTokenHash(newRefreshToken),
+            },
             ct);
 
         return new AuthTokenPair(accessToken, newRefreshToken);

@@ -1,6 +1,6 @@
-using LinkForge.Application.Entities;
 using LinkForge.Application.Repositories;
-using LinkForge.Domain.ValueTypes;
+using LinkForge.Domain.Users;
+using LinkForge.Domain.Users.ValueObjects;
 using LinkForge.Infrastructure.PersistentStorage.Documents;
 using LinkForge.Infrastructure.PersistentStorage.Dto;
 using LinkForge.Infrastructure.PersistentStorage.Mappers;
@@ -20,7 +20,7 @@ internal sealed class RefreshTokensRepository(
         IRefreshTokensRepository
 {
     public async Task<RefreshToken?> FindAsync(
-        EntityId userId,
+        ObjectId userId,
         UserAgent userAgent,
         CancellationToken ct = default)
     {
@@ -28,7 +28,7 @@ internal sealed class RefreshTokensRepository(
         [
             new("$match", new BsonDocument
             {
-                { "userId", ObjectId.Parse(userId.ToString()) },
+                { "userId", userId },
                 { "userAgent", userAgent.ToString() },
             }),
             new("$lookup", new BsonDocument
@@ -46,7 +46,7 @@ internal sealed class RefreshTokensRepository(
             .Aggregate<RefreshTokenWithUserDto>(pipeline, cancellationToken: ct)
             .FirstOrDefaultAsync(ct);
 
-        return result is null ? null : mapper.ToDomainModel(result);
+        return result is null ? null : mapper.ToModel(result);
     }
     
     public async Task InsertAsync(

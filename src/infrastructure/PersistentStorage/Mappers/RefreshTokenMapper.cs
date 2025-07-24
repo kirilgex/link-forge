@@ -1,5 +1,5 @@
-﻿using LinkForge.Application.Entities;
-using LinkForge.Domain.ValueTypes;
+﻿using LinkForge.Domain.Users;
+using LinkForge.Domain.Users.ValueObjects;
 using LinkForge.Infrastructure.PersistentStorage.Documents;
 using LinkForge.Infrastructure.PersistentStorage.Dto;
 
@@ -14,19 +14,21 @@ internal class RefreshTokenMapper(
     {
         return new RefreshTokenDocument
         {
-            Id = model.Id is null ? default : ObjectId.Parse(model.Id.ToString()),
+            Id = model.Id,
             UserId = ObjectId.Parse(model.User.Id.ToString()),
             UserAgent = model.UserAgent.ToString(),
             TokenHash = model.TokenHash,
         };
     }
 
-    public RefreshToken ToDomainModel(RefreshTokenWithUserDto document)
+    public RefreshToken ToModel(RefreshTokenWithUserDto document)
     {
-        return new RefreshToken(
-            id: new EntityId(document.Id.ToString()),
-            user: userMapper.ToDomainModel(document.User),
-            userAgent: new UserAgent(document.UserAgent),
-            tokenHash: document.TokenHash);
+        return new RefreshToken
+        {
+            Id = document.Id,
+            User = userMapper.ToModel(document.User),
+            UserAgent = new UserAgent(document.UserAgent),
+            TokenHash = document.TokenHash,
+        };
     }
 }

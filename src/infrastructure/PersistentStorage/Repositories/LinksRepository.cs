@@ -40,7 +40,7 @@ internal sealed class LinksRepository(
             .Aggregate<LinkWithOwnerDto>(pipeline, cancellationToken: ct)
             .FirstOrDefaultAsync(ct);
 
-        return result is null ? null : mapper.ToDomainModel(result);
+        return result is null ? null : mapper.ToModel(result);
     }
     
     public async Task InsertAsync(

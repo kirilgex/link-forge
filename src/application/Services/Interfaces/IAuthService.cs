@@ -1,7 +1,6 @@
 using LinkForge.Application.DTO;
-using LinkForge.Application.Entities;
 using LinkForge.Domain.Users;
-using LinkForge.Domain.Users.ValueTypes;
+using LinkForge.Domain.Users.ValueObjects;
 
 namespace LinkForge.Application.Services.Interfaces;
 

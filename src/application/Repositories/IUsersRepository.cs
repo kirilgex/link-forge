@@ -1,6 +1,5 @@
 using LinkForge.Domain.Users;
-using LinkForge.Domain.Users.ValueTypes;
-using LinkForge.Domain.ValueTypes;
+using LinkForge.Domain.Users.ValueObjects;
 
 namespace LinkForge.Application.Repositories;
 

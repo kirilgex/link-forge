@@ -1,14 +1,11 @@
 using LinkForge.Application.Repositories;
 using LinkForge.Domain.Users;
-using LinkForge.Domain.Users.ValueTypes;
-using LinkForge.Domain.ValueTypes;
+using LinkForge.Domain.Users.ValueObjects;
 using LinkForge.Infrastructure.PersistentStorage.Documents;
-using LinkForge.Infrastructure.PersistentStorage.Dto;
 using LinkForge.Infrastructure.PersistentStorage.Mappers;
 
 using Microsoft.Extensions.Options;
 
-using MongoDB.Bson;
 using MongoDB.Driver;
 
 namespace LinkForge.Infrastructure.PersistentStorage.Repositories;
@@ -25,7 +22,7 @@ internal sealed class UsersRepository(
         CancellationToken ct = default)
     {
         return await Collection
-            .Find(x => x.Email == email.ToString())
+            .Find(x => x.Email == email)
             .AnyAsync(ct);
     }
 
@@ -34,10 +31,10 @@ internal sealed class UsersRepository(
         CancellationToken ct = default)
     {
         var result = await Collection
-            .Find(x => x.Email == email.ToString())
+            .Find(x => x.Email == email)
             .FirstOrDefaultAsync(ct);
         
-        return result is null ? null : mapper.ToDomainModel(result);
+        return result is null ? null : mapper.ToModel(result);
     }
     
     public async Task InsertAsync(

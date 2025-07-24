@@ -1,8 +1,9 @@
 using System.Security.Claims;
 
 using LinkForge.Application.Services.Interfaces;
-using LinkForge.Domain.Links.ValueTypes;
-using LinkForge.Domain.ValueTypes;
+using LinkForge.Domain.Links.ValueObjects;
+
+using MongoDB.Bson;
 
 namespace LinkForge.API.Endpoints.Links;
 
@@ -44,8 +45,8 @@ public static class PostLinkEndpoint
                 statusCode: StatusCodes.Status400BadRequest);
         }
 
-        var userId = context.User.FindFirst(ClaimTypes.NameIdentifier);
-        if (string.IsNullOrWhiteSpace(userId?.Value))
+        var nameIdentifier = context.User.FindFirst(ClaimTypes.NameIdentifier);
+        if (string.IsNullOrWhiteSpace(nameIdentifier?.Value) || !ObjectId.TryParse(nameIdentifier.Value, out var userId))
         {
             return TypedResults.Problem(
                 title: "Invalid Request",
@@ -53,7 +54,7 @@ public static class PostLinkEndpoint
                 statusCode: StatusCodes.Status400BadRequest);
         }
 
-        var code = await linksProcessService.ProcessLinkAsync(url, new EntityId(userId.Value), ct);
+        var code = await linksProcessService.ProcessLinkAsync(url, userId, ct);
 
         var location = linkGenerator.GetUriByName(context, LinksEndpointsSettings.GetLinkEndpointName, new { code, });
 
