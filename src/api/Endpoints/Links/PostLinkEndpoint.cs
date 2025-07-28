@@ -1,6 +1,6 @@
 using System.Security.Claims;
 
-using LinkForge.Application.Services.Interfaces;
+using LinkForge.Application.Links.Services.Interfaces;
 using LinkForge.Domain.Links.ValueObjects;
 
 using MongoDB.Bson;

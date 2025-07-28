@@ -1,8 +1,8 @@
-using LinkForge.Application.DTO;
+using LinkForge.Application.Auth.Dto;
 using LinkForge.Domain.Users;
 using LinkForge.Domain.Users.ValueObjects;
 
-namespace LinkForge.Application.Services.Interfaces;
+namespace LinkForge.Application.Auth.Services.Interfaces;
 
 public interface IAuthService
 {

@@ -3,7 +3,8 @@ using System.Text;
 using LinkForge.API.Endpoints.Auth;
 using LinkForge.API.Endpoints.Links;
 using LinkForge.Application;
-using LinkForge.Application.Settings;
+using LinkForge.Application.Auth.Settings;
+using LinkForge.Application.Links.Settings;
 using LinkForge.Infrastructure.PersistentStorage;
 
 using Microsoft.AspNetCore.Authentication.JwtBearer;

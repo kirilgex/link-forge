@@ -1,4 +1,4 @@
-namespace LinkForge.Application.Services.Interfaces;
+namespace LinkForge.Application.Links.Services.Interfaces;
 
 public interface IHashingService
 {

@@ -1,4 +1,4 @@
-using LinkForge.Application.Repositories;
+using LinkForge.Application.Links.PersistentStorageAccess;
 using LinkForge.Domain.Links;
 using LinkForge.Infrastructure.PersistentStorage.Documents;
 using LinkForge.Infrastructure.PersistentStorage.Dto;

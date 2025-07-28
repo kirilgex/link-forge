@@ -3,7 +3,7 @@ using LinkForge.Domain.Users.ValueObjects;
 
 using MongoDB.Bson;
 
-namespace LinkForge.Application.Repositories;
+namespace LinkForge.Application.Auth.PersistentStorageAccess;
 
 public interface IRefreshTokensRepository
 {

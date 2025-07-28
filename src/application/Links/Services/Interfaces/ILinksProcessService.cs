@@ -1,9 +1,8 @@
-using LinkForge.Domain.Links;
 using LinkForge.Domain.Links.ValueObjects;
 
 using MongoDB.Bson;
 
-namespace LinkForge.Application.Services.Interfaces;
+namespace LinkForge.Application.Links.Services.Interfaces;
 
 public interface ILinksProcessService
 {

@@ -1,12 +1,12 @@
 using System.Data.HashFunction.MurmurHash;
 using System.Text;
 
-using LinkForge.Application.Services.Interfaces;
-using LinkForge.Application.Settings;
+using LinkForge.Application.Links.Services.Interfaces;
+using LinkForge.Application.Links.Settings;
 
 using Microsoft.Extensions.Options;
 
-namespace LinkForge.Application.Services.Implementations;
+namespace LinkForge.Application.Links.Services.Implementations;
 
 public class MurmurHashingService(IOptions<HashingSettings> settings)
     : IHashingService

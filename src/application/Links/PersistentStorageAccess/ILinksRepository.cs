@@ -1,6 +1,6 @@
 using LinkForge.Domain.Links;
 
-namespace LinkForge.Application.Repositories;
+namespace LinkForge.Application.Links.PersistentStorageAccess;
 
 public interface ILinksRepository
 {

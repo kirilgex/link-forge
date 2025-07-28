@@ -1,4 +1,4 @@
-namespace LinkForge.Application.DTO;
+namespace LinkForge.Application.Auth.Dto;
 
 public class AuthTokenPair(string accessToken, string refreshToken)
 {

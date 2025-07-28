@@ -1,8 +1,8 @@
-using LinkForge.Application.Repositories;
-using LinkForge.Application.Services.Interfaces;
+using LinkForge.Application.Links.PersistentStorageAccess;
+using LinkForge.Application.Links.Services.Interfaces;
 using LinkForge.Domain.Links;
 
-namespace LinkForge.Application.Services.Implementations;
+namespace LinkForge.Application.Links.Services.Implementations;
 
 public class LinksLookupService(
     ILinksRepository linksRepository)

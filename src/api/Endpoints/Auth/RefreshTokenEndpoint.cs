@@ -1,4 +1,4 @@
-using LinkForge.Application.Services.Interfaces;
+using LinkForge.Application.Auth.Services.Interfaces;
 using LinkForge.Domain.Users.ValueObjects;
 
 namespace LinkForge.API.Endpoints.Auth;

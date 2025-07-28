@@ -1,7 +1,7 @@
 using LinkForge.Domain.Users;
 using LinkForge.Domain.Users.ValueObjects;
 
-namespace LinkForge.Application.Repositories;
+namespace LinkForge.Application.Auth.PersistentStorageAccess;
 
 public interface IUsersRepository
 {

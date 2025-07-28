@@ -3,10 +3,10 @@ using System.Security.Claims;
 using System.Security.Cryptography;
 using System.Text;
 
-using LinkForge.Application.DTO;
-using LinkForge.Application.Repositories;
-using LinkForge.Application.Services.Interfaces;
-using LinkForge.Application.Settings;
+using LinkForge.Application.Auth.Dto;
+using LinkForge.Application.Auth.PersistentStorageAccess;
+using LinkForge.Application.Auth.Services.Interfaces;
+using LinkForge.Application.Auth.Settings;
 using LinkForge.Domain.Users;
 using LinkForge.Domain.Users.ValueObjects;
 
@@ -16,7 +16,7 @@ using Microsoft.IdentityModel.Tokens;
 
 using MongoDB.Bson;
 
-namespace LinkForge.Application.Services.Implementations;
+namespace LinkForge.Application.Auth.Services.Implementations;
 
 public class AuthService(
     IOptions<AuthSettings> authSettings,
