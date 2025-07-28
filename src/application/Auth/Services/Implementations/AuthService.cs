@@ -4,9 +4,11 @@ using System.Security.Cryptography;
 using System.Text;
 
 using LinkForge.Application.Auth.Dto;
+using LinkForge.Application.Auth.Errors;
 using LinkForge.Application.Auth.PersistentStorageAccess;
 using LinkForge.Application.Auth.Services.Interfaces;
 using LinkForge.Application.Auth.Settings;
+using LinkForge.Domain.Shared;
 using LinkForge.Domain.Users;
 using LinkForge.Domain.Users.ValueObjects;
 
@@ -20,54 +22,137 @@ namespace LinkForge.Application.Auth.Services.Implementations;
 
 public class AuthService(
     IOptions<AuthSettings> authSettings,
+    IPasswordValidationService passwordValidationService,
     IUsersRepository usersRepository,
     IRefreshTokensRepository refreshTokensRepository)
     : IAuthService
 {
-    private static readonly IPasswordHasher<User> PasswordHasher =
-        new PasswordHasher<User>(
+    private static readonly PasswordHasher<User> PasswordHasher =
+        new(
             new OptionsWrapper<PasswordHasherOptions>(
                 new PasswordHasherOptions
                 {
                     CompatibilityMode = PasswordHasherCompatibilityMode.IdentityV3,
                 }));
 
-    public async Task<bool> UserExistsAsync(
-        UserEmail email,
-        CancellationToken ct = default)
-        => await usersRepository.ExistsAsync(email, ct);
-
-    public async Task CreateUserAsync(
-        UserEmail email,
-        UserPassword password,
+    public async Task<Result> RegisterUserAsync(
+        RegisterUserRequest request,
         CancellationToken ct = default)
     {
+        if (!UserEmail.TryParseFromUserInput(request.Email, out var email))
+        {
+            return Result.Failure(new InvalidEmailError());
+        }
+        
+        if (!passwordValidationService.ValidatePassword(request.Password, out var password))
+        {
+            return Result.Failure(new InvalidPasswordError(passwordValidationService.GetReadablePasswordRestrictions()));
+        }
+        
         var user = new User { Email = email, };
-
         user.PasswordHash = PasswordHasher.HashPassword(user, password);
 
-        await usersRepository.InsertAsync(user, ct);
+        return await usersRepository.InsertAsync(user, ct);
     }
 
-    public async Task<User?> AuthenticateUserAsync(
-        UserEmail email,
-        UserPassword password,
+    public async Task<Result<AuthTokenPairResponse>> AuthenticateUserAsync(
+        LoginRequest request,
+        UserAgent userAgent,
         CancellationToken ct = default)
     {
-        var user = await usersRepository.FindAsync(email, ct);
+        if (!UserEmail.TryParseFromUserInput(request.Email, out var email)
+            || string.IsNullOrWhiteSpace(request.Password))
+        {
+            return Result<AuthTokenPairResponse>.Failure(new InvalidCredentialsError());
+        }
+        
+        var userLookupResult = await usersRepository.FindAsync(email, ct);
+        if (!userLookupResult.IsSuccess)
+        {
+            return Result<AuthTokenPairResponse>.Failure(userLookupResult.Error!);
+        }
 
-        if (user is null || user.PasswordHash is null)
-            return null;
-
-        var verificationResult = PasswordHasher.VerifyHashedPassword(user, user.PasswordHash, password);
-
+        var user = userLookupResult.Value!;
+        
+        var verificationResult = PasswordHasher.VerifyHashedPassword(user, user.PasswordHash, request.Password);
         if (verificationResult is PasswordVerificationResult.Failed)
-            return null;
+        {
+            return Result<AuthTokenPairResponse>.Failure(new NotAuthenticatedError());
+        }
 
-        return user;
+        var authTokenPair = await CreateAuthTokensAsync(user, userAgent, ct);
+        return Result<AuthTokenPairResponse>.Success(authTokenPair);
     }
 
-    public async Task<AuthTokenPair> CreateAuthTokensAsync(
+    public async Task<Result<AuthTokenPairResponse>> RefreshTokensAsync(
+        RefreshTokenRequest request,
+        UserAgent userAgent,
+        CancellationToken ct = default)
+    {
+        if (string.IsNullOrWhiteSpace(request.RefreshToken))
+        {
+            return Result<AuthTokenPairResponse>.Failure(new InvalidRefreshTokenError());
+        }
+        
+        var tokenHandler = new JwtSecurityTokenHandler();
+
+        var key = Encoding.UTF8.GetBytes(authSettings.Value.RefreshToken.SecretKey);
+
+        var parameters = new TokenValidationParameters
+        {
+            ValidateIssuer = true,
+            ValidIssuer = authSettings.Value.Issuer,
+            ValidateAudience = true,
+            ValidAudience = authSettings.Value.Audience,
+            ValidateIssuerSigningKey = true,
+            IssuerSigningKey = new SymmetricSecurityKey(key),
+            ValidateLifetime = true,
+        };
+        
+        ClaimsPrincipal principal;
+
+        try
+        {
+            principal = tokenHandler.ValidateToken(request.RefreshToken, parameters, out _);
+        }
+        catch
+        {
+            return Result<AuthTokenPairResponse>.Failure(new InvalidRefreshTokenError());
+        }
+
+        var userIdClaim = principal.FindFirst(ClaimTypes.NameIdentifier);
+
+        if (userIdClaim is null)
+        {
+            return Result<AuthTokenPairResponse>.Failure(new InvalidRefreshTokenError());
+        }
+
+        var refreshTokenData = await refreshTokensRepository.FindAsync(
+            ObjectId.Parse(userIdClaim.Value), userAgent, ct);
+
+        if (refreshTokenData is null
+            || ComputeRefreshTokenHash(request.RefreshToken) != refreshTokenData.TokenHash)
+        {
+            return Result<AuthTokenPairResponse>.Failure(new InvalidRefreshTokenError());
+        }
+
+        var accessToken = CreateAccessToken(principal.Claims, tokenHandler);
+        var newRefreshToken = CreateRefreshToken(principal.Claims, tokenHandler);
+
+        await refreshTokensRepository.ReplaceOneAsync(
+            new RefreshToken
+            {
+                Id = refreshTokenData.Id,
+                User = refreshTokenData.User,
+                UserAgent = userAgent,
+                TokenHash = ComputeRefreshTokenHash(newRefreshToken),
+            },
+            ct);
+
+        return Result<AuthTokenPairResponse>.Success(new AuthTokenPairResponse(accessToken, newRefreshToken));
+    }
+    
+    private async Task<AuthTokenPairResponse> CreateAuthTokensAsync(
         User user,
         UserAgent userAgent,
         CancellationToken ct = default)
@@ -100,73 +185,7 @@ public class AuthService(
             await refreshTokensRepository.ReplaceOneAsync(newRefreshTokenData, ct);
         }
 
-        return new AuthTokenPair(accessToken, refreshToken);
-    }
-
-    public async Task<AuthTokenPair?> RefreshTokensAsync(
-        string refreshToken,
-        UserAgent userAgent,
-        CancellationToken ct = default)
-    {
-        var tokenHandler = new JwtSecurityTokenHandler();
-
-        var key = Encoding.UTF8.GetBytes(authSettings.Value.RefreshToken.SecretKey);
-
-        var parameters = new TokenValidationParameters
-        {
-            ValidateIssuer = true,
-            ValidIssuer = authSettings.Value.Issuer,
-            ValidateAudience = true,
-            ValidAudience = authSettings.Value.Audience,
-            ValidateIssuerSigningKey = true,
-            IssuerSigningKey = new SymmetricSecurityKey(key),
-            ValidateLifetime = true,
-        };
-
-        ClaimsPrincipal? principal = null;
-
-        try
-        {
-            principal = tokenHandler.ValidateToken(refreshToken, parameters, out var _);
-        }
-        catch
-        {
-            // Consider token invalid.
-        }
-
-        if (principal is null)
-            return null;
-
-        var userIdClaim = principal.FindFirst(ClaimTypes.NameIdentifier);
-
-        if (userIdClaim is null)
-            return null;
-
-        var refreshTokenData = await refreshTokensRepository.FindAsync(
-            ObjectId.Parse(userIdClaim.Value),
-            userAgent,
-            ct);
-
-        if (refreshTokenData is null)
-            return null;
-
-        if (ComputeRefreshTokenHash(refreshToken) != refreshTokenData.TokenHash)
-            return null;
-
-        var accessToken = CreateAccessToken(principal.Claims, tokenHandler);
-        var newRefreshToken = CreateRefreshToken(principal.Claims, tokenHandler);
-
-        await refreshTokensRepository.ReplaceOneAsync(
-            new RefreshToken
-            {
-                Id = refreshTokenData.Id,
-                User = refreshTokenData.User,
-                UserAgent = userAgent,
-                TokenHash = ComputeRefreshTokenHash(newRefreshToken),
-            },
-            ct);
-
-        return new AuthTokenPair(accessToken, newRefreshToken);
+        return new AuthTokenPairResponse(accessToken, refreshToken);
     }
 
     private string CreateAccessToken(

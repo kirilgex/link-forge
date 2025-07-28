@@ -11,11 +11,6 @@ public readonly struct UserEmail : IEquatable<UserEmail>
         Value = value;
     }
 
-    public static UserEmail ParseFromUserInput(string raw)
-    {
-        return new UserEmail(raw.ToLowerInvariant().Trim());
-    }
-
     public static bool TryParseFromUserInput(string input, out UserEmail result)
     {
         result = default;

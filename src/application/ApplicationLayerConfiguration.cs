@@ -12,6 +12,7 @@ public static class ApplicationLayerConfiguration
     public static IServiceCollection AddApplicationLayerServices(this IServiceCollection services)
     {
         services.AddSingleton<IHashingService, MurmurHashingService>();
+        services.AddSingleton<IPasswordValidationService, PasswordValidationService>();
 
         services.AddScoped<IAuthService, AuthService>();
         services.AddScoped<ILinksProcessService, LinksProcessService>();
