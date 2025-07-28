@@ -1,5 +1,7 @@
-using LinkForge.Application.Services.Implementations;
-using LinkForge.Application.Services.Interfaces;
+using LinkForge.Application.Auth.Services.Implementations;
+using LinkForge.Application.Auth.Services.Interfaces;
+using LinkForge.Application.Links.Services.Implementations;
+using LinkForge.Application.Links.Services.Interfaces;
 
 using Microsoft.Extensions.DependencyInjection;
 

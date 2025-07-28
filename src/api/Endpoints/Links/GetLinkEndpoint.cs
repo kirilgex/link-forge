@@ -1,5 +1,5 @@
-using LinkForge.Application.Services.Interfaces;
-using LinkForge.Domain.Links.ValueTypes;
+using LinkForge.Application.Links.Services.Interfaces;
+using LinkForge.Domain.Links.ValueObjects;
 
 using Microsoft.AspNetCore.Mvc;
 
@@ -34,14 +34,14 @@ public static class GetLinkEndpoint
         }
 
         var result = await linksLookupService.FindLinkAsync(
-            LinkCode.FromUserInput(code).ToString(), ct);
+            LinkCode.FromUserInput(code), ct);
 
         if (result is null)
         {
             return TypedResults.NotFound();
         }
 
-        return TypedResults.Ok(new GetLinkResponse(result.Url.ToString()));
+        return TypedResults.Ok(new GetLinkResponse(result.Url));
     }
 
     private record GetLinkResponse(string Link);

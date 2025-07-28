@@ -1,27 +1,28 @@
-using LinkForge.Application.Repositories;
+using LinkForge.Application.Auth.PersistentStorageAccess;
 using LinkForge.Domain.Users;
-using LinkForge.Domain.Users.ValueTypes;
-using LinkForge.Domain.ValueTypes;
-using LinkForge.Infrastructure.PersistentStorage.Dto;
+using LinkForge.Domain.Users.ValueObjects;
+using LinkForge.Infrastructure.PersistentStorage.Documents;
+using LinkForge.Infrastructure.PersistentStorage.Mappers;
 
 using Microsoft.Extensions.Options;
 
-using MongoDB.Bson;
 using MongoDB.Driver;
 
 namespace LinkForge.Infrastructure.PersistentStorage.Repositories;
 
-internal sealed class UsersRepository(IOptions<DatabaseSettings> settings)
-    : BaseRepository<UserDto>(settings, CollectionName), IUsersRepository
+internal sealed class UsersRepository(
+    IOptions<DatabaseSettings> settings,
+    UserMapper mapper)
+    :
+        AbstractRepository<UserDocument>(settings, UserDocument.CollectionName),
+        IUsersRepository
 {
-    public const string CollectionName = "users";
-
     public async Task<bool> ExistsAsync(
         UserEmail email,
         CancellationToken ct = default)
     {
         return await Collection
-            .Find(x => x.Email == email.ToString())
+            .Find(x => x.Email == email)
             .AnyAsync(ct);
     }
 
@@ -30,19 +31,10 @@ internal sealed class UsersRepository(IOptions<DatabaseSettings> settings)
         CancellationToken ct = default)
     {
         var result = await Collection
-            .Find(x => x.Email == email.ToString())
+            .Find(x => x.Email == email)
             .FirstOrDefaultAsync(ct);
-        return result.ToUser();
-    }
-
-    public async Task<User?> FindAsync(
-        EntityId userId,
-        CancellationToken ct = default)
-    {
-        var result = await Collection
-            .Find(x => x.Id == ObjectId.Parse(userId.ToString()))
-            .FirstOrDefaultAsync(ct);
-        return result.ToUser();
+        
+        return result is null ? null : mapper.ToModel(result);
     }
     
     public async Task InsertAsync(
@@ -50,7 +42,7 @@ internal sealed class UsersRepository(IOptions<DatabaseSettings> settings)
         CancellationToken ct = default)
     {
         await Collection.InsertOneAsync(
-            (UserDto)user,
+            mapper.ToDocument(user),
             options: null,
             ct);
     }
