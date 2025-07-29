@@ -13,7 +13,7 @@ public readonly struct LinkCode
     {
         if (string.IsNullOrWhiteSpace(raw))
         {
-            throw new ArgumentException("Code must not be null or empty.", nameof(raw));
+            return new LinkCode(string.Empty);
         }
 
         return new LinkCode(raw.ToLowerInvariant().Trim());

@@ -1,4 +1,6 @@
-﻿using LinkForge.Domain.Shared;
+﻿using System.Net;
+
+using LinkForge.Domain.Shared;
 
 namespace LinkForge.API.Extensions;
 
@@ -20,9 +22,11 @@ public static class ResultExtensions
 
     public static IResult ToHttpProblemResponse(this Error error)
     {
-        return TypedResults.Problem(
-            detail: error.Message,
-            statusCode: (int)error.StatusCode
-        );
+        return error.StatusCode switch
+        {
+            HttpStatusCode.Unauthorized => TypedResults.Unauthorized(),
+            HttpStatusCode.NotFound => TypedResults.NotFound(),
+            _ => TypedResults.Problem(detail: error.Message, statusCode: (int)error.StatusCode)
+        };
     }
 }

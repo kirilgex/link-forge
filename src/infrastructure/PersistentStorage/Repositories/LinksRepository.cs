@@ -1,5 +1,7 @@
+using LinkForge.Application.Links.Errors;
 using LinkForge.Application.Links.PersistentStorageAccess;
 using LinkForge.Domain.Links;
+using LinkForge.Domain.Shared;
 using LinkForge.Infrastructure.PersistentStorage.Documents;
 using LinkForge.Infrastructure.PersistentStorage.Dto;
 using LinkForge.Infrastructure.PersistentStorage.Mappers;
@@ -18,7 +20,7 @@ internal sealed class LinksRepository(
         AbstractRepository<LinkDocument>(settings, LinkDocument.CollectionName),
         ILinksRepository
 {
-    public async Task<Link?> FindAsync(
+    public async Task<Result<Link>> FindAsync(
         string code,
         CancellationToken ct = default)
     {
@@ -40,7 +42,9 @@ internal sealed class LinksRepository(
             .Aggregate<LinkWithOwnerDto>(pipeline, cancellationToken: ct)
             .FirstOrDefaultAsync(ct);
 
-        return result is null ? null : mapper.ToModel(result);
+        return result is null
+            ? Result<Link>.Failure(new LinkNotFoundError())
+            : Result<Link>.Success(mapper.ToModel(result));
     }
     
     public async Task InsertAsync(

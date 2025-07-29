@@ -1,9 +1,8 @@
-using System.Security.Claims;
-
+using LinkForge.API.Extensions;
+using LinkForge.Application.Links.Dto;
 using LinkForge.Application.Links.Services.Interfaces;
-using LinkForge.Domain.Links.ValueObjects;
 
-using MongoDB.Bson;
+using Microsoft.AspNetCore.Mvc;
 
 namespace LinkForge.API.Endpoints.Links;
 
@@ -15,53 +14,32 @@ public static class PostLinkEndpoint
             .MapPost(LinksEndpointsSettings.PostLinkEndpointPattern, HandleAsync)
             .WithName(LinksEndpointsSettings.PostLinkEndpointName)
             .WithTags(LinksEndpointsSettings.Tags)
+            .WithSummary("Create link")
+            .WithDescription("Generates a new short link for specified url.")
+            .Accepts<CreateLinkRequest>("application/json")
             .Produces(StatusCodes.Status201Created)
-            .Produces(StatusCodes.Status400BadRequest)
+            .Produces<ProblemDetails>(StatusCodes.Status400BadRequest)
+            .Produces(StatusCodes.Status401Unauthorized)
             .RequireAuthorization();
         return app;
     }
 
     private static async Task<IResult> HandleAsync(
-        PostLinkRequest request,
+        CreateLinkRequest request,
         HttpContext context,
         ILinksProcessService linksProcessService,
         LinkGenerator linkGenerator,
         CancellationToken ct = default)
     {
-        if (string.IsNullOrWhiteSpace(request.Url))
-        {
-            return TypedResults.Problem(
-                title: "Invalid Request",
-                detail: "The 'url' field is required and cannot be empty.",
-                statusCode: StatusCodes.Status400BadRequest);
-        }
-
-
-        if (!LinkUrl.TryParseFromUserInput(request.Url, out var url))
-        {
-            return TypedResults.Problem(
-                title: "Invalid Request",
-                detail: "The 'url' field must be a valid url.",
-                statusCode: StatusCodes.Status400BadRequest);
-        }
-
-        var nameIdentifier = context.User.FindFirst(ClaimTypes.NameIdentifier);
-        if (string.IsNullOrWhiteSpace(nameIdentifier?.Value) || !ObjectId.TryParse(nameIdentifier.Value, out var userId))
-        {
-            return TypedResults.Problem(
-                title: "Invalid Request",
-                detail: "Invalid auth token.",
-                statusCode: StatusCodes.Status400BadRequest);
-        }
-
-        var code = await linksProcessService.ProcessLinkAsync(url, userId, ct);
-
-        var location = linkGenerator.GetUriByName(context, LinksEndpointsSettings.GetLinkEndpointName, new { code, });
-
-        context.Response.Headers.Location = location;
-
-        return TypedResults.CreatedAtRoute(LinksEndpointsSettings.GetLinkEndpointName, new { code, });
+        var result = await linksProcessService.ProcessLinkAsync(request, context.User, ct);
+        return result.Match(
+            onSuccess: code =>
+            {
+                context.Response.Headers.Location = linkGenerator.GetUriByName(
+                    context, LinksEndpointsSettings.GetLinkEndpointName, new { Code = code.ToString(), });
+                return TypedResults.CreatedAtRoute(
+                    LinksEndpointsSettings.GetLinkEndpointName, new { Code = code.ToString(), });
+            },
+            onFailure: error => error.ToHttpProblemResponse());
     }
-
-    private record PostLinkRequest(string Url);
 }

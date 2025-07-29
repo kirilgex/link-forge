@@ -1,10 +1,11 @@
 using LinkForge.Domain.Links;
+using LinkForge.Domain.Shared;
 
 namespace LinkForge.Application.Links.PersistentStorageAccess;
 
 public interface ILinksRepository
 {
-    Task<Link?> FindAsync(
+    Task<Result<Link>> FindAsync(
         string code,
         CancellationToken ct = default);
 

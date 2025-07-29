@@ -1,10 +1,11 @@
-using LinkForge.Domain.Links;
+using LinkForge.Application.Links.Dto;
+using LinkForge.Domain.Shared;
 
 namespace LinkForge.Application.Links.Services.Interfaces;
 
 public interface ILinksLookupService
 {
-    Task<Link?> FindLinkAsync(
+    Task<Result<FindLinkResponse>> FindLinkAsync(
         string code,
         CancellationToken ct = default);
 }
