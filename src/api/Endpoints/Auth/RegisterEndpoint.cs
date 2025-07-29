@@ -1,6 +1,8 @@
+using LinkForge.API.Extensions;
+using LinkForge.Application.Auth.Dto;
 using LinkForge.Application.Auth.Services.Interfaces;
-using LinkForge.Domain.Users;
-using LinkForge.Domain.Users.ValueObjects;
+
+using Microsoft.AspNetCore.Mvc;
 
 namespace LinkForge.API.Endpoints.Auth;
 
@@ -12,46 +14,21 @@ public static class RegisterEndpoint
             .MapPost(AuthEndpointsSettings.RegisterEndpointPattern, HandleAsync)
             .WithName(AuthEndpointsSettings.RegisterEndpointName)
             .WithTags(AuthEndpointsSettings.Tags)
-            .Produces(StatusCodes.Status201Created)
-            .Produces(StatusCodes.Status400BadRequest);
+            .WithSummary("Register a new user")
+            .WithDescription("Creates a new user account if provided email and password are valid, and email is not already taken.")
+            .Accepts<RegisterUserRequest>("application/json")
+            .Produces(StatusCodes.Status200OK)
+            .Produces<ProblemDetails>(StatusCodes.Status400BadRequest)
+            .Produces<ProblemDetails>(StatusCodes.Status409Conflict);
         return app;
     }
 
     private static async Task<IResult> HandleAsync(
-        RegisterRequest request,
-        HttpContext context,
+        RegisterUserRequest request,
         IAuthService authService,
-        LinkGenerator linkGenerator,
         CancellationToken ct = default)
     {
-        if (!UserEmail.TryParseFromUserInput(request.Email, out var email))
-        {
-            return TypedResults.Problem(
-                title: "Invalid Request",
-                detail: "Valid email is required.",
-                statusCode: StatusCodes.Status400BadRequest);
-        }
-
-        if (!UserPassword.TryParseFromUserInput(request.Password, out var password))
-        {
-            return TypedResults.Problem(
-                title: "Invalid Request",
-                detail: UserPassword.GetPasswordRestrictions(),
-                statusCode: StatusCodes.Status400BadRequest);
-        }
-
-        if (await authService.UserExistsAsync(email, ct))
-        {
-            return TypedResults.Problem(
-                title: "Invalid Request",
-                detail: "User already exists.",
-                statusCode: StatusCodes.Status400BadRequest);
-        }
-
-        await authService.CreateUserAsync(email, password, ct);
-
-        return TypedResults.CreatedAtRoute(AuthEndpointsSettings.LoginEndpointName, null);
+        var result = await authService.RegisterUserAsync(request, ct);
+        return result.ToHttpResponse();
     }
-
-    private record RegisterRequest(string Email, string Password);
 }

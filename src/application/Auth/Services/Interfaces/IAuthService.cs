@@ -1,32 +1,22 @@
 using LinkForge.Application.Auth.Dto;
-using LinkForge.Domain.Users;
+using LinkForge.Domain.Shared;
 using LinkForge.Domain.Users.ValueObjects;
 
 namespace LinkForge.Application.Auth.Services.Interfaces;
 
 public interface IAuthService
 {
-    Task<bool> UserExistsAsync(
-        UserEmail email,
+    Task<Result> RegisterUserAsync(
+        RegisterUserRequest request,
         CancellationToken ct = default);
 
-    Task CreateUserAsync(
-        UserEmail email,
-        UserPassword password,
-        CancellationToken ct = default);
-
-    Task<User?> AuthenticateUserAsync(
-        UserEmail email,
-        UserPassword password,
-        CancellationToken ct = default);
-
-    public Task<AuthTokenPair> CreateAuthTokensAsync(
-        User user,
+    Task<Result<AuthTokenPairResponse>> AuthenticateUserAsync(
+        LoginRequest request,
         UserAgent userAgent,
         CancellationToken ct = default);
 
-    Task<AuthTokenPair?> RefreshTokensAsync(
-        string refreshToken,
+    Task<Result<AuthTokenPairResponse>> RefreshTokensAsync(
+        RefreshTokenRequest request,
         UserAgent userAgent,
         CancellationToken ct = default);
 }

@@ -1,4 +1,6 @@
+using LinkForge.Application.Auth.Errors;
 using LinkForge.Application.Auth.PersistentStorageAccess;
+using LinkForge.Domain.Shared;
 using LinkForge.Domain.Users;
 using LinkForge.Domain.Users.ValueObjects;
 using LinkForge.Infrastructure.PersistentStorage.Documents;
@@ -17,33 +19,35 @@ internal sealed class UsersRepository(
         AbstractRepository<UserDocument>(settings, UserDocument.CollectionName),
         IUsersRepository
 {
-    public async Task<bool> ExistsAsync(
-        UserEmail email,
-        CancellationToken ct = default)
-    {
-        return await Collection
-            .Find(x => x.Email == email)
-            .AnyAsync(ct);
-    }
-
-    public async Task<User?> FindAsync(
+    public async Task<Result<User>> FindAsync(
         UserEmail email,
         CancellationToken ct = default)
     {
         var result = await Collection
             .Find(x => x.Email == email)
             .FirstOrDefaultAsync(ct);
-        
-        return result is null ? null : mapper.ToModel(result);
+
+        return result is null
+            ? Result<User>.Failure(new NotAuthenticatedError())
+            : Result<User>.Success(mapper.ToModel(result));
     }
     
-    public async Task InsertAsync(
+    public async Task<Result> InsertAsync(
         User user,
         CancellationToken ct = default)
     {
-        await Collection.InsertOneAsync(
-            mapper.ToDocument(user),
-            options: null,
-            ct);
+        try
+        {
+            await Collection.InsertOneAsync(
+                mapper.ToDocument(user),
+                options: null,
+                ct);
+        }
+        catch (MongoWriteException ex) when (ex.WriteError.Category is ServerErrorCategory.DuplicateKey)
+        {
+            return Result.Failure(new UserAlreadyExistsError());
+        }
+
+        return Result.Success();
     }
 }

@@ -1,5 +1,8 @@
+using LinkForge.API.Extensions;
+using LinkForge.Application.Auth.Dto;
 using LinkForge.Application.Auth.Services.Interfaces;
-using LinkForge.Domain.Users.ValueObjects;
+
+using Microsoft.AspNetCore.Mvc;
 
 namespace LinkForge.API.Endpoints.Auth;
 
@@ -11,9 +14,12 @@ public static class RefreshTokenEndpoint
             .MapPost(AuthEndpointsSettings.RefreshTokenEndpointPattern, HandleAsync)
             .WithName(AuthEndpointsSettings.RefreshTokenEndpointName)
             .WithTags(AuthEndpointsSettings.Tags)
-            .Produces<RefreshTokenResponse>(StatusCodes.Status200OK)
-            .Produces(StatusCodes.Status400BadRequest)
-            .Produces(StatusCodes.Status401Unauthorized);
+            .WithSummary("Refresh access token")
+            .WithDescription("Generates a new access token for valid refresh token.")
+            .Accepts<RefreshTokenRequest>("application/json")
+            .Produces<AuthTokenPairResponse>(StatusCodes.Status200OK)
+            .Produces<ProblemDetails>(StatusCodes.Status400BadRequest)
+            .Produces<ProblemDetails>(StatusCodes.Status401Unauthorized);
         return app;
     }
 
@@ -23,27 +29,7 @@ public static class RefreshTokenEndpoint
         IAuthService authService,
         CancellationToken ct = default)
     {
-        if (string.IsNullOrWhiteSpace(request.RefreshToken))
-        {
-            return TypedResults.Problem(
-                title: "Invalid Request",
-                detail: "Refresh token is required.",
-                statusCode: StatusCodes.Status400BadRequest);
-        }
-
-        context.Request.Headers.TryGetValue("User-Agent", out var userAgent);
-        var tokenPair = await authService.RefreshTokensAsync(
-            request.RefreshToken, new UserAgent(userAgent), ct);
-
-        if (tokenPair is null)
-        {
-            return TypedResults.Unauthorized();
-        }
-
-        return TypedResults.Ok(new RefreshTokenResponse(tokenPair.AccessToken, tokenPair.RefreshToken));
+        var result = await authService.RefreshTokensAsync(request, context.Request.GetUserAgent(), ct);
+        return result.ToHttpResponse();
     }
-
-    private record RefreshTokenRequest(string RefreshToken);
-    
-    private record RefreshTokenResponse(string AccessToken, string RefreshToken);
 }

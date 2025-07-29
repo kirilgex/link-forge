@@ -1,3 +1,4 @@
+using LinkForge.Domain.Shared;
 using LinkForge.Domain.Users;
 using LinkForge.Domain.Users.ValueObjects;
 
@@ -5,15 +6,11 @@ namespace LinkForge.Application.Auth.PersistentStorageAccess;
 
 public interface IUsersRepository
 {
-    Task<bool> ExistsAsync(
+    Task<Result<User>> FindAsync(
         UserEmail email,
         CancellationToken ct = default);
 
-    Task<User?> FindAsync(
-        UserEmail email,
-        CancellationToken ct = default);
-
-    Task InsertAsync(
+    Task<Result> InsertAsync(
         User user,
         CancellationToken ct = default);
 }
