@@ -1,6 +1,8 @@
+using LinkForge.API.Extensions;
+using LinkForge.Application.Auth.Dto;
 using LinkForge.Application.Auth.Services.Interfaces;
-using LinkForge.Domain.Users;
-using LinkForge.Domain.Users.ValueObjects;
+
+using Microsoft.AspNetCore.Mvc;
 
 namespace LinkForge.API.Endpoints.Auth;
 
@@ -12,9 +14,12 @@ public static class LoginEndpoint
             .MapPost(AuthEndpointsSettings.LoginEndpointPattern, HandleAsync)
             .WithName(AuthEndpointsSettings.LoginEndpointName)
             .WithTags(AuthEndpointsSettings.Tags)
-            .Produces<LoginResponse>(StatusCodes.Status200OK)
-            .Produces(StatusCodes.Status400BadRequest)
-            .Produces(StatusCodes.Status401Unauthorized);
+            .WithSummary("Authenticate user")
+            .WithDescription("Verifies provided credentials and returns access and refresh tokens if authentication succeeds.")
+            .Accepts<LoginRequest>("application/json")
+            .Produces<AuthTokenPairResponse>(StatusCodes.Status200OK)
+            .Produces<ProblemDetails>(StatusCodes.Status400BadRequest)
+            .Produces<ProblemDetails>(StatusCodes.Status401Unauthorized);
         return app;
     }
 
@@ -24,32 +29,7 @@ public static class LoginEndpoint
         IAuthService authService,
         CancellationToken ct = default)
     {
-        if (string.IsNullOrWhiteSpace(request.Email) || string.IsNullOrWhiteSpace(request.Password))
-        {
-            return TypedResults.Problem(
-                title: "Invalid Request",
-                detail: "Email and password required.",
-                statusCode: StatusCodes.Status400BadRequest);
-        }
-
-        var user = await authService.AuthenticateUserAsync(
-            UserEmail.ParseFromUserInput(request.Email),
-            UserPassword.ParseFromUserInput(request.Password),
-            ct);
-
-        if (user is null)
-        {
-            return TypedResults.Unauthorized();
-        }
-
-        context.Request.Headers.TryGetValue("User-Agent", out var userAgent);
-        var tokenPair = await authService.CreateAuthTokensAsync(
-            user, new UserAgent(userAgent), ct);
-
-        return TypedResults.Ok(new LoginResponse(tokenPair.AccessToken, tokenPair.RefreshToken));
+        var result = await authService.AuthenticateUserAsync(request, context.Request.GetUserAgent(), ct);
+        return result.ToHttpResponse();
     }
-
-    private record LoginRequest(string Email, string Password);
-
-    private record LoginResponse(string AccessToken, string RefreshToken);
 }

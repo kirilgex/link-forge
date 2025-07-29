@@ -1,5 +1,8 @@
 namespace LinkForge.Application.Links.Settings;
 
-public record HashingSettings(
-    int HashSizeInBits,
-    uint Seed);
+public record HashingSettings
+{
+    public required int HashSizeInBits { get; init; }
+    
+    public required uint Seed { get; init; }
+}

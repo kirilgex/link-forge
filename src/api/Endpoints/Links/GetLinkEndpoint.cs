@@ -1,7 +1,7 @@
+using LinkForge.API.Extensions;
+using LinkForge.Application.Links.Dto;
 using LinkForge.Application.Links.Services.Interfaces;
 using LinkForge.Domain.Links.ValueObjects;
-
-using Microsoft.AspNetCore.Mvc;
 
 namespace LinkForge.API.Endpoints.Links;
 
@@ -13,36 +13,21 @@ public static class GetLinkEndpoint
             .MapGet(LinksEndpointsSettings.GetLinkEndpointPattern, HandleAsync)
             .WithName(LinksEndpointsSettings.GetLinkEndpointName)
             .WithTags(LinksEndpointsSettings.Tags)
-            .Produces<GetLinkResponse>(StatusCodes.Status200OK)
-            .Produces(StatusCodes.Status400BadRequest)
+            .WithSummary("Retrieve link")
+            .WithDescription("Retrieves link by provided code.")
+            .Produces<FindLinkResponse>(StatusCodes.Status200OK)
+            .Produces(StatusCodes.Status401Unauthorized)
             .Produces(StatusCodes.Status404NotFound)
             .RequireAuthorization();
         return app;
     }
 
     private static async Task<IResult> HandleAsync(
-        [FromRoute] string? code,
+        string code,
         ILinksLookupService linksLookupService,
         CancellationToken ct = default)
     {
-        if (string.IsNullOrWhiteSpace(code))
-        {
-            return TypedResults.Problem(
-                title: "Invalid Request",
-                detail: "The 'code' parameter is required and cannot be empty.",
-                statusCode: StatusCodes.Status400BadRequest);
-        }
-
-        var result = await linksLookupService.FindLinkAsync(
-            LinkCode.FromUserInput(code), ct);
-
-        if (result is null)
-        {
-            return TypedResults.NotFound();
-        }
-
-        return TypedResults.Ok(new GetLinkResponse(result.Url));
+        var result = await linksLookupService.FindLinkAsync(LinkCode.FromUserInput(code), ct);
+        return result.ToHttpResponse();
     }
-
-    private record GetLinkResponse(string Link);
 }

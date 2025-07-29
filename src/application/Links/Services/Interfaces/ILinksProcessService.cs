@@ -1,13 +1,15 @@
-using LinkForge.Domain.Links.ValueObjects;
+using System.Security.Claims;
 
-using MongoDB.Bson;
+using LinkForge.Application.Links.Dto;
+using LinkForge.Domain.Links.ValueObjects;
+using LinkForge.Domain.Shared;
 
 namespace LinkForge.Application.Links.Services.Interfaces;
 
 public interface ILinksProcessService
 {
-    Task<string> ProcessLinkAsync(
-        LinkUrl url,
-        ObjectId ownerId,
+    Task<Result<LinkCode>> ProcessLinkAsync(
+        CreateLinkRequest request,
+        ClaimsPrincipal user,
         CancellationToken ct = default);
 }
