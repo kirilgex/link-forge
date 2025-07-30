@@ -2,6 +2,7 @@ using System.Text;
 
 using LinkForge.API.Endpoints.Auth;
 using LinkForge.API.Endpoints.Links;
+using LinkForge.API.Middleware;
 using LinkForge.Application;
 using LinkForge.Application.Auth.Settings;
 using LinkForge.Application.Links.Settings;
@@ -60,6 +61,8 @@ if (app.Environment.IsDevelopment())
     app.MapOpenApi();
     app.MapScalarApiReference();
 }
+
+app.UseMiddleware<ExceptionHandlingMiddleware>();
 
 app
     .MapRegisterEndpoint()
