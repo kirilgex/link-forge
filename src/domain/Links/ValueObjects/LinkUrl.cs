@@ -13,26 +13,19 @@ public readonly struct LinkUrl
     {
         result = default;
 
-        input = input.ToLowerInvariant().Trim();
-
-        if (!input.StartsWith("http://", StringComparison.InvariantCultureIgnoreCase)
-            && !input.StartsWith("https://", StringComparison.InvariantCultureIgnoreCase))
+        if (string.IsNullOrWhiteSpace(input))
         {
-            input = "https://" + input;
+            return false;
         }
 
-        if (!Uri.TryCreate(input, UriKind.Absolute, out var uri)) return false;
+        input = input.ToLowerInvariant().Trim();
 
-        var builder = new UriBuilder(uri)
+        if (!Uri.TryCreate(input, UriKind.Absolute, out _))
         {
-            Scheme = uri.Scheme,
-            Host = uri.Host,
-            Port = uri is { Scheme: "http", Port: 80 } or { Scheme: "https", Port: 443 }
-                ? -1
-                : uri.Port,
-        };
+            return false;
+        }
 
-        result = new LinkUrl(builder.ToString());
+        result = new LinkUrl(input);
 
         return true;
     }
